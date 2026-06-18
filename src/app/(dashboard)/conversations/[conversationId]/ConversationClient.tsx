@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useSession } from "next-auth/react"
 import toast from "react-hot-toast"
 import dynamic from "next/dynamic"
 import ConversationHeader from "@/components/conversations/ConversationHeader"
@@ -27,6 +28,7 @@ export default function ConversationClient({
   conversationId,
 }: ConversationClientProps) {
   const router = useRouter()
+  const { data: session } = useSession()
   const { setConversationId } = useConversation()
   const [conversation, setConversation] = useState(initialConversation)
   const [messages, setMessages] = useState<FullMessageType[]>(initialConversation.messages)
@@ -57,7 +59,10 @@ export default function ConversationClient({
     })
 
     channel.bind("messages:new", (message: FullMessageType) => {
-      setMessages((prev) => [...prev, message])
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === message.id)) return prev
+        return [...prev, message]
+      })
     })
 
     channel.bind("conversation:delete", () => {
@@ -96,6 +101,27 @@ export default function ConversationClient({
   }, [conversationId])
 
   const handleSendMessage = async (body: string, image?: string) => {
+    const tempId = `temp-${Date.now()}`
+    const currentUserId = session?.user?.id || ""
+    const tempMessage: FullMessageType & { _status?: string } = {
+      id: tempId,
+      body: body || null,
+      image: image || null,
+      createdAt: new Date().toISOString(),
+      sender: {
+        id: currentUserId,
+        name: session?.user?.name || "You",
+        image: session?.user?.image || null,
+        email: session?.user?.email || "",
+        emailVerified: null,
+        createdAt: "",
+        updatedAt: "",
+      },
+      seenBy: [],
+      _status: "sending",
+    }
+    setMessages((prev) => [...prev, tempMessage as FullMessageType])
+
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
@@ -103,8 +129,11 @@ export default function ConversationClient({
         body: JSON.stringify({ message: body, image: image || undefined }),
       })
       if (!res.ok) throw new Error("Failed to send")
+      const realMessage = await res.json()
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? realMessage : m)))
       hapticLight()
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       toast.error("Failed to send message")
     }
   }

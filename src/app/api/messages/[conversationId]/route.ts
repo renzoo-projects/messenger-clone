@@ -85,9 +85,30 @@ export async function POST(
           create: { userId: session.user.id },
         },
       },
-      include: {
-        sender: true,
-        seenBy: { include: { user: true } },
+      select: {
+        id: true,
+        body: true,
+        image: true,
+        createdAt: true,
+        senderId: true,
+        conversationId: true,
+        sender: {
+          select: {
+            id: true, name: true, image: true, email: true,
+            emailVerified: true, createdAt: true, updatedAt: true,
+          },
+        },
+        seenBy: {
+          select: {
+            userId: true,
+            user: {
+              select: {
+                id: true, name: true, image: true, email: true,
+                emailVerified: true, createdAt: true, updatedAt: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -107,19 +128,10 @@ export async function POST(
       },
     })
 
-    const sanitizedMessage = {
-      ...newMessage,
-      sender: newMessage.sender ? sanitizeUser(newMessage.sender) : null,
-      seenBy: newMessage.seenBy.map((sm: any) => ({
-        ...sm,
-        user: sanitizeUser(sm.user),
-      })),
-    }
-
     await pusherServer.trigger(
       `private-conversation-${conversationId}`,
       "messages:new",
-      sanitizedMessage
+      newMessage
     )
 
     const transformed = transformConversation(conversation)
@@ -148,7 +160,7 @@ export async function POST(
       }
     }
 
-    return NextResponse.json(sanitizedMessage, { status: 201 })
+    return NextResponse.json(newMessage, { status: 201 })
   } catch (error) {
     console.error("[MESSAGES_POST] Error:", error)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
