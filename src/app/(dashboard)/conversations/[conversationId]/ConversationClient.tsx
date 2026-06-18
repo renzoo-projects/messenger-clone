@@ -39,7 +39,14 @@ export default function ConversationClient({
   const [summaryMessageCount, setSummaryMessageCount] = useState(0)
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor ?? null)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set())
   const channelRef = useRef<any>(null)
+  const currentUserIdRef = useRef(session?.user?.id)
+  const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
+
+  useEffect(() => {
+    currentUserIdRef.current = session?.user?.id
+  }, [session?.user?.id])
 
   useEffect(() => {
     setConversationId(conversationId)
@@ -86,6 +93,7 @@ export default function ConversationClient({
     })
 
     channel.bind("messages:new", (message: FullMessageType) => {
+      if (message.sender?.id === currentUserIdRef.current) return
       setMessages((prev) => {
         if (prev.some((m) => m.id === message.id)) return prev
         return [...prev, message]
@@ -106,8 +114,32 @@ export default function ConversationClient({
       router.push("/conversations")
     })
 
+    channel.bind("client-typing:start", ({ userId, userName }: { userId: string; userName: string }) => {
+      if (userId === currentUserIdRef.current) return
+      setTypingUserIds((prev) => {
+        const next = new Set(prev)
+        next.add(userId)
+        return next
+      })
+      const existing = typingTimersRef.current.get(userId)
+      if (existing) clearTimeout(existing)
+      typingTimersRef.current.set(
+        userId,
+        setTimeout(() => {
+          setTypingUserIds((prev) => {
+            const next = new Set(prev)
+            next.delete(userId)
+            return next
+          })
+          typingTimersRef.current.delete(userId)
+        }, 4000)
+      )
+    })
+
     return () => {
       channel.unbind_all()
+      for (const timer of typingTimersRef.current.values()) clearTimeout(timer)
+      typingTimersRef.current.clear()
       if (typeof window !== "undefined") {
         const pusherClient = getPusherClient()
         pusherClient.unsubscribe(channelName)
@@ -115,6 +147,15 @@ export default function ConversationClient({
       channelRef.current = null
     }
   }, [conversationId, router])
+
+  const handleTypingStart = useCallback(() => {
+    if (!channelRef.current) return
+    const name = session?.user?.name || "Someone"
+    channelRef.current.trigger("client-typing:start", {
+      userId: currentUserIdRef.current,
+      userName: name,
+    })
+  }, [session?.user?.name])
 
   const handleSummarize = useCallback(async () => {
     setSummaryLoading(true)
@@ -210,6 +251,7 @@ export default function ConversationClient({
       <ConversationHeader
         conversation={conversation}
         onSummarize={handleSummarize}
+        typingUserIds={typingUserIds}
       />
       <SummaryBanner
         summary={summary}
@@ -221,7 +263,7 @@ export default function ConversationClient({
         }}
       />
       <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} />
-      <MessageInput onSend={handleSendMessage} onEngage={handleEngage} />
+      <MessageInput onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
     </div>
   )
 }

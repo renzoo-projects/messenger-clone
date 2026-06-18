@@ -8,20 +8,52 @@ import toast from "react-hot-toast"
 interface MessageInputProps {
   onSend: (message: string, image?: string) => Promise<void>
   onEngage?: () => void
+  onTypingStart?: () => void
 }
 
-export default function MessageInput({ onSend, onEngage }: MessageInputProps) {
+export default function MessageInput({ onSend, onEngage, onTypingStart }: MessageInputProps) {
   const [text, setText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [previewFile, setPreviewFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const formRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
+
+  const typingThrottleRef = useRef(false)
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+
+    const handleResize = () => {
+      const diff = window.innerHeight - vv.height
+      setKeyboardOffset(Math.max(0, diff))
+      if (diff > 100) {
+        setTimeout(() => {
+          formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+        }, 100)
+      }
+    }
+
+    vv.addEventListener("resize", handleResize)
+    return () => vv.removeEventListener("resize", handleResize)
+  }, [])
+
+  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value)
+    if (onTypingStart && !typingThrottleRef.current) {
+      typingThrottleRef.current = true
+      onTypingStart()
+      setTimeout(() => { typingThrottleRef.current = false }, 3000)
+    }
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -66,7 +98,11 @@ export default function MessageInput({ onSend, onEngage }: MessageInputProps) {
   }
 
   return (
-    <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4">
+    <div
+      ref={formRef}
+      className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 transition-[padding-bottom]"
+      style={keyboardOffset > 0 ? { paddingBottom: `${keyboardOffset}px` } : undefined}
+    >
       {previewUrl && (
         <div className="relative mb-3">
           <Image
@@ -110,7 +146,7 @@ export default function MessageInput({ onSend, onEngage }: MessageInputProps) {
           inputMode="text"
           enterKeyHint="send"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={handleTextChange}
           onFocus={onEngage}
           placeholder="Type a message"
           disabled={isLoading}

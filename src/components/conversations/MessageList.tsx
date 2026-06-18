@@ -1,13 +1,16 @@
 "use client"
 
-import { useRef, useEffect, useMemo, useCallback } from "react"
+import { useRef, useEffect, useMemo, useCallback, useState } from "react"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import clsx from "clsx"
 import { FullMessageType } from "@/types"
-import { format } from "date-fns"
+import { format, isToday, isYesterday } from "date-fns"
 import Avatar from "@/components/ui/Avatar"
 import useActiveList from "@/hooks/useActiveList"
+import { hapticLight } from "@/lib/haptic"
+
+const REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"] as const
 
 interface MessageListProps {
   messages: FullMessageType[]
@@ -22,6 +25,12 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
   const { members } = useActiveList()
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [contextMenu, setContextMenu] = useState<{
+    message: FullMessageType
+    x: number
+    y: number
+  } | null>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -40,8 +49,43 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
   }, [loadMore, hasMore])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    if (!contextMenu) return
+    const handleClick = () => setContextMenu(null)
+    window.addEventListener("scroll", handleClick, true)
+    window.addEventListener("click", handleClick, true)
+    return () => {
+      window.removeEventListener("scroll", handleClick, true)
+      window.removeEventListener("click", handleClick, true)
+    }
+  }, [contextMenu])
+
+  const handleTouchStart = (message: FullMessageType, e: React.TouchEvent | React.MouseEvent) => {
+    longPressTimer.current = setTimeout(() => {
+      hapticLight()
+      const touch = "touches" in e ? e.touches[0] : e
+      setContextMenu({ message, x: touch.clientX, y: touch.clientY })
+    }, 500)
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = undefined
+    }
+  }
+
+  const handleCopyMessage = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+    } catch {}
+    setContextMenu(null)
+  }
+
+  const formatDateHeader = useCallback((date: Date) => {
+    if (isToday(date)) return "Today"
+    if (isYesterday(date)) return "Yesterday"
+    return format(date, "EEEE, MMMM d")
+  }, [])
 
   const seenByText = useMemo(() => {
     const currentUserId = session?.user?.id
@@ -56,6 +100,20 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
       return `Seen by ${others[0]}, ${others[1]}, and ${others.length - 2} others`
     }
   }, [session?.user?.id])
+
+  const groupedMessages = useMemo(() => {
+    const groups: { date: string; messages: FullMessageType[] }[] = []
+    for (const msg of messages) {
+      const dateKey = format(new Date(msg.createdAt), "yyyy-MM-dd")
+      const lastGroup = groups[groups.length - 1]
+      if (lastGroup && lastGroup.date === dateKey) {
+        lastGroup.messages.push(msg)
+      } else {
+        groups.push({ date: dateKey, messages: [msg] })
+      }
+    }
+    return groups
+  }, [messages])
 
   if (messages.length === 0) {
     return (
@@ -78,92 +136,155 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
           <div className="h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
         </div>
       )}
-      {messages.map((message, index) => {
-        const isOwn = message.sender.id === session?.user?.id
-        const seenText = seenByText(message)
-        const animClass = isOwn ? "motion-safe:animate-slideInRight" : "motion-safe:animate-slideInLeft"
-        const isLatest = index === messages.length - 1
-        const isOnline = members.includes(message.sender.id)
-
+      {groupedMessages.map((group) => {
+        const groupDate = new Date(group.messages[0].createdAt)
         return (
-          <div
-            key={message.id}
-            className={clsx("flex gap-2", isOwn && "justify-end", animClass)}
-            style={{ animationDelay: isLatest ? "0ms" : `${Math.min(index * 30, 150)}ms` }}
-            aria-label={`Message from ${message.sender.name || "Unknown"}`}
-          >
-            {!isOwn && (
-              <div className="flex-shrink-0 mt-1 self-end">
-                <Avatar user={message.sender} size="sm" />
-              </div>
-            )}
-            <div
-              className={clsx(
-                "flex flex-col max-w-xs",
-                isOwn ? "items-end" : "items-start"
-              )}
-            >
-              {isGroup && !isOwn && (
-                <div className="flex items-center gap-1.5 mb-0.5 ml-1">
-                  <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                    {message.sender.name || "Unknown"}
-                  </span>
-                  {isOnline && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Online" />
-                  )}
-                </div>
-              )}
-              {message.image && (
-                <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                  <Image
-                    src={message.image}
-                    alt={`Image shared by ${message.sender.name || "Unknown"}`}
-                    width={0}
-                    height={0}
-                    className="rounded-xl max-w-60 w-full h-auto shadow-sm"
-                    sizes="240px"
-                  />
-                  {message.body && (
-                    <div
-                      className={clsx(
-                        "rounded-2xl px-4 py-2 text-sm mt-1",
-                        isOwn
-                          ? "bg-sky-500 text-white rounded-br-sm"
-                          : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
-                      )}
-                    >
-                      {message.body}
+          <div key={group.date}>
+            <div className="flex justify-center mb-4">
+              <span className="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm">
+                {formatDateHeader(groupDate)}
+              </span>
+            </div>
+            {group.messages.map((message, index) => {
+              const isOwn = message.sender.id === session?.user?.id
+              const seenText = seenByText(message)
+              const animClass = isOwn ? "motion-safe:animate-slideInRight" : "motion-safe:animate-slideInLeft"
+              const isLatest = index === group.messages.length - 1
+              const isOnline = members.includes(message.sender.id)
+
+              return (
+                <div
+                  key={message.id}
+                  className={clsx("flex gap-2 mb-1", isOwn && "justify-end", animClass)}
+                  style={{ animationDelay: isLatest ? "0ms" : `${Math.min(index * 30, 150)}ms` }}
+                  onTouchStart={(e) => handleTouchStart(message, e)}
+                  onTouchEnd={handleTouchEnd}
+                  onMouseDown={(e) => handleTouchStart(message, e)}
+                  onMouseUp={handleTouchEnd}
+                  onMouseLeave={handleTouchEnd}
+                  aria-label={`Message from ${message.sender.name || "Unknown"}`}
+                >
+                  {!isOwn && (
+                    <div className="flex-shrink-0 mt-1 self-end">
+                      <Avatar user={message.sender} size="sm" />
                     </div>
                   )}
+                  <div
+                    className={clsx(
+                      "flex flex-col max-w-xs lg:max-w-sm",
+                      isOwn ? "items-end" : "items-start"
+                    )}
+                  >
+                    {isGroup && !isOwn && (
+                      <div className="flex items-center gap-1.5 mb-0.5 ml-1">
+                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                          {message.sender.name || "Unknown"}
+                        </span>
+                        {isOnline && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Online" />
+                        )}
+                      </div>
+                    )}
+                    {message.image && (
+                      <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
+                        <Image
+                          src={message.image}
+                          alt={`Image shared by ${message.sender.name || "Unknown"}`}
+                          width={0}
+                          height={0}
+                          className="rounded-xl max-w-60 w-full h-auto shadow-sm"
+                          sizes="240px"
+                        />
+                        {message.body && (
+                          <div
+                            className={clsx(
+                              "rounded-2xl px-4 py-2 text-sm mt-1",
+                              isOwn
+                                ? "bg-sky-500 text-white rounded-br-sm"
+                                : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
+                            )}
+                          >
+                            {message.body}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    {!message.image && message.body && (
+                      <div
+                        className={clsx(
+                          "rounded-2xl px-4 py-2 text-sm",
+                          isOwn
+                            ? "bg-sky-500 text-white rounded-br-sm"
+                            : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
+                        )}
+                      >
+                        {message.body}
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 mt-1 min-h-4">
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                        {format(new Date(message.createdAt), "p")}
+                      </p>
+                      {isOwn && (message as any)._status === "sending" && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">Sending...</span>
+                      )}
+                      {isOwn && !(message as any)._status && seenText && (
+                        <span className="text-[10px] text-sky-500 font-medium" title={seenText}>
+                          ✓✓
+                        </span>
+                      )}
+                      {isOwn && !(message as any)._status && !seenText && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500">✓</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-              {!message.image && message.body && (
-                <div
-                  className={clsx(
-                    "rounded-2xl px-4 py-2 text-sm",
-                    isOwn
-                      ? "bg-sky-500 text-white rounded-br-sm"
-                      : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
-                  )}
-                >
-                  {message.body}
-                </div>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                  {format(new Date(message.createdAt), "p")}
-                </p>
-                {isOwn && seenText && (
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate max-w-32">
-                    {seenText}
-                  </p>
-                )}
-              </div>
-            </div>
+              )
+            })}
           </div>
         )
       })}
       <div ref={bottomRef} />
+      {contextMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setContextMenu(null)}
+          onTouchEnd={() => setContextMenu(null)}
+        >
+          <div
+            className="absolute z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-2 min-w-[200px]"
+            style={{
+              left: Math.min(contextMenu.x, window.innerWidth - 220),
+              top: Math.min(contextMenu.y, window.innerHeight - 200),
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-center gap-1 px-1 pb-2 mb-1 border-b border-gray-100 dark:border-gray-700">
+              {REACTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => {
+                    hapticLight()
+                    setContextMenu(null)
+                  }}
+                  className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-lg transition-colors"
+                  aria-label={`React with ${emoji}`}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => handleCopyMessage(contextMenu.message.body || "")}
+              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

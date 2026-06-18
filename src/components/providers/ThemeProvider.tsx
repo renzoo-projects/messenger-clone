@@ -2,6 +2,7 @@
 
 import { useEffect, useCallback } from "react"
 import { useTheme } from "@/hooks/useTheme"
+import { useFontSize } from "@/hooks/useFontSize"
 
 export default function ThemeProvider({
   children,
@@ -10,6 +11,7 @@ export default function ThemeProvider({
 }) {
   const theme = useTheme((s) => s.theme)
   const setTheme = useTheme((s) => s.setTheme)
+  const setFontSize = useFontSize((s) => s.setFontSize)
 
   const syncFromStorage = useCallback(() => {
     const stored = localStorage.getItem("theme")
@@ -26,7 +28,11 @@ export default function ThemeProvider({
 
   useEffect(() => {
     syncFromStorage()
-  }, [syncFromStorage])
+    const savedSize = localStorage.getItem("font-size")
+    if (savedSize === "sm" || savedSize === "lg" || savedSize === "xl") {
+      setFontSize(savedSize)
+    }
+  }, [syncFromStorage, setFontSize])
 
   useEffect(() => {
     const root = document.documentElement

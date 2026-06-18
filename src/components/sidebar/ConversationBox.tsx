@@ -27,6 +27,7 @@ const ConversationBox = memo(function ConversationBox({
   const [showMenu, setShowMenu] = useState(false)
   const [swiped, setSwiped] = useState(false)
   const touchRef = useRef({ startX: 0, currentX: 0, swiping: false })
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const rowRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -111,6 +112,11 @@ const ConversationBox = memo(function ConversationBox({
       currentX: e.touches[0].clientX,
       swiping: false,
     }
+    if (longPressTimer.current) clearTimeout(longPressTimer.current)
+    longPressTimer.current = setTimeout(() => {
+      hapticLight()
+      setShowMenu(true)
+    }, 500)
   }, [])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -120,27 +126,40 @@ const ConversationBox = memo(function ConversationBox({
 
     if (Math.abs(delta) > 10) {
       touchRef.current.swiping = true
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current)
+        longPressTimer.current = undefined
+      }
     }
 
-    if (delta > 0 && delta <= SWIPE_THRESHOLD + 40) {
+    if (delta > 0) {
+      const overage = Math.max(0, delta - SWIPE_THRESHOLD)
+      const rubberBand = SWIPE_THRESHOLD + Math.sqrt(overage * 4)
       touchRef.current.currentX = currentX
       if (rowRef.current) {
-        rowRef.current.style.transform = `translateX(-${Math.min(delta, SWIPE_THRESHOLD)}px)`
+        rowRef.current.style.transform = `translateX(-${Math.min(delta, rubberBand)}px)`
+        rowRef.current.style.transition = "none"
       }
     }
   }, [])
 
   const handleTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = undefined
+    }
     const delta = touchRef.current.startX - touchRef.current.currentX
     if (delta > SWIPE_THRESHOLD) {
       setSwiped(true)
       if (rowRef.current) {
         rowRef.current.style.transform = `translateX(-${SWIPE_THRESHOLD}px)`
+        rowRef.current.style.transition = "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)"
       }
     } else {
       setSwiped(false)
       if (rowRef.current) {
         rowRef.current.style.transform = ""
+        rowRef.current.style.transition = "transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)"
       }
     }
     touchRef.current.swiping = false

@@ -12,11 +12,13 @@ import { HiInformationCircle, HiOutlineSparkles } from "react-icons/hi2"
 interface ConversationHeaderProps {
   conversation: FullConversationType
   onSummarize?: () => void
+  typingUserIds?: Set<string>
 }
 
 export default function ConversationHeader({
   conversation,
   onSummarize,
+  typingUserIds,
 }: ConversationHeaderProps) {
   const { data: session } = useSession()
   const profileDrawer = useProfileDrawer()
@@ -30,6 +32,16 @@ export default function ConversationHeader({
   }, [session?.user?.id, conversation?.users])
 
   const statusText = useMemo(() => {
+    if (typingUserIds && typingUserIds.size > 0) {
+      const typingNames: string[] = []
+      for (const uid of typingUserIds) {
+        const user = conversation.users?.find((u) => u.id === uid)
+        if (user) typingNames.push(user.name || "Someone")
+      }
+      if (typingNames.length === 1) return `${typingNames[0]} is typing...`
+      if (typingNames.length > 1) return `${typingNames[0]} and ${typingNames.length - 1} other${typingNames.length > 2 ? "s" : ""} typing...`
+      return "Someone is typing..."
+    }
     if (conversation.isGroup) {
       return `${conversation.users?.length || 0} members`
     }
@@ -37,7 +49,7 @@ export default function ConversationHeader({
       return "Active now"
     }
     return "Offline"
-  }, [conversation, otherUser, members])
+  }, [conversation, otherUser, members, typingUserIds])
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">

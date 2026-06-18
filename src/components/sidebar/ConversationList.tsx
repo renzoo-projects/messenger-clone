@@ -18,8 +18,13 @@ export default function ConversationList({
   const router = useRouter()
   const { conversations, isLoading } = useConversations(initialConversations)
   const [showGroupModal, setShowGroupModal] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [pullDistance, setPullDistance] = useState(0)
   const isOnConversationsPage = pathname === "/conversations"
   const prefetchedRef = useRef(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
+  const isPulling = useRef(false)
 
   useEffect(() => {
     if (prefetchedRef.current) return
@@ -29,6 +34,38 @@ export default function ConversationList({
       router.prefetch(`/conversations/${conv.id}`)
     })
   }, [conversations, router])
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (scrollRef.current && scrollRef.current.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY
+      isPulling.current = true
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isPulling.current) return
+    const delta = e.touches[0].clientY - touchStartY.current
+    if (delta <= 0) {
+      setPullDistance(0)
+      return
+    }
+    setPullDistance(Math.min(delta * 0.5, 120))
+  }
+
+  const handleTouchEnd = () => {
+    if (!isPulling.current) return
+    isPulling.current = false
+    if (pullDistance >= 80) {
+      setRefreshing(true)
+      setPullDistance(0)
+      setTimeout(() => {
+        setRefreshing(false)
+        router.refresh()
+      }, 800)
+    } else {
+      setPullDistance(0)
+    }
+  }
 
   return (
     <div className={`${isOnConversationsPage ? "fixed inset-0 z-30 flex flex-col" : "hidden"} lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950`}>
@@ -46,7 +83,29 @@ export default function ConversationList({
           <HiPencilSquare className="h-5 w-5" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {refreshing && (
+          <div className="flex justify-center py-3">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+          </div>
+        )}
+        {pullDistance > 0 && (
+          <div
+            className="flex justify-center py-2 transition-transform"
+            style={{ transform: `translateY(${pullDistance}px)` }}
+          >
+            <div
+              className="h-5 w-5 rounded-full border-2 border-gray-400 dark:border-gray-500 transition-transform"
+              style={{ transform: `rotate(${pullDistance * 3}deg)` }}
+            />
+          </div>
+        )}
         {isLoading ? (
           <div className="space-y-2 px-5 py-4" aria-label="Loading conversations">
             {Array.from({ length: 5 }).map((_, i) => (

@@ -7,14 +7,24 @@ import toast from "react-hot-toast"
 import Modal from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import useSettingsModal from "@/hooks/useSettingsModal"
+import { useFontSize, FontSize } from "@/hooks/useFontSize"
 import Avatar from "@/components/ui/Avatar"
 import { HiCamera, HiCheck, HiXMark } from "react-icons/hi2"
+
+const FONT_SIZES: { value: FontSize; label: string }[] = [
+  { value: "sm", label: "Small" },
+  { value: "md", label: "Medium" },
+  { value: "lg", label: "Large" },
+  { value: "xl", label: "Extra Large" },
+]
 
 export default function SettingsModal() {
   const settingsModal = useSettingsModal()
   const { data: session, update } = useSession()
   const [isLoading, setIsLoading] = useState(false)
   const [image, setImage] = useState<string | undefined>(session?.user?.image || undefined)
+  const fontSize = useFontSize((s) => s.fontSize)
+  const setFontSize = useFontSize((s) => s.setFontSize)
 
   const {
     register,
@@ -74,7 +84,7 @@ export default function SettingsModal() {
   }
 
   return (
-    <Modal isOpen={settingsModal.isOpen} onClose={settingsModal.onClose}>
+    <Modal isOpen={settingsModal.isOpen} onClose={settingsModal.onClose} variant="sheet">
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</h2>
@@ -115,6 +125,29 @@ export default function SettingsModal() {
             {errors.name && (
               <p className="text-xs text-red-500 mt-1">Name is required</p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Text Size
+            </label>
+            <div className="flex gap-2">
+              {FONT_SIZES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFontSize(value)}
+                  disabled={isLoading}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    fontSize === value
+                      ? "bg-sky-500 text-white shadow-sm"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

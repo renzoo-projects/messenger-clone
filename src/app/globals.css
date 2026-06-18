@@ -79,11 +79,28 @@ select:focus-visible {
   background: hsl(0 0% 30%);
 }
 
+html[data-font-size="lg"] {
+  font-size: 110%;
+}
+
+html[data-font-size="xl"] {
+  font-size: 120%;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .bg-black\/60 {
+    background-color: rgb(0 0 0 / 0.85);
+  }
+  .bg-black\/40 {
+    background-color: rgb(0 0 0 / 0.7);
   }
 }
