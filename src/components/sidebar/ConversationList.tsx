@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { useState, useEffect } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { useConversations } from "@/hooks/useConversations"
 import { FullConversationType } from "@/types"
 import ConversationBox from "./ConversationBox"
@@ -15,9 +15,16 @@ export default function ConversationList({
   initialConversations?: FullConversationType[]
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { conversations, isLoading } = useConversations(initialConversations)
   const [showGroupModal, setShowGroupModal] = useState(false)
   const isOnConversationsPage = pathname === "/conversations"
+
+  useEffect(() => {
+    conversations.forEach((conv) => {
+      router.prefetch(`/conversations/${conv.id}`)
+    })
+  }, [conversations, router])
 
   return (
     <div className={`${isOnConversationsPage ? "fixed inset-0 z-30 flex flex-col" : "hidden"} lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950`}>
