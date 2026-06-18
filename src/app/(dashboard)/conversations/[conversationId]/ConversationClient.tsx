@@ -114,7 +114,7 @@ export default function ConversationClient({
       router.push("/conversations")
     })
 
-    channel.bind("client-typing:start", ({ userId, userName }: { userId: string; userName: string }) => {
+    channel.bind("typing:start", ({ userId, userName }: { userId: string; userName: string }) => {
       if (userId === currentUserIdRef.current) return
       setTypingUserIds((prev) => {
         const next = new Set(prev)
@@ -149,13 +149,8 @@ export default function ConversationClient({
   }, [conversationId, router])
 
   const handleTypingStart = useCallback(() => {
-    if (!channelRef.current) return
-    const name = session?.user?.name || "Someone"
-    channelRef.current.trigger("client-typing:start", {
-      userId: currentUserIdRef.current,
-      userName: name,
-    })
-  }, [session?.user?.name])
+    fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {})
+  }, [conversationId])
 
   const handleSummarize = useCallback(async () => {
     setSummaryLoading(true)
