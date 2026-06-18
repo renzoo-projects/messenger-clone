@@ -3,14 +3,19 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import { useConversations } from "@/hooks/useConversations"
+import { FullConversationType } from "@/types"
 import ConversationBox from "./ConversationBox"
 import GroupCreateModal from "@/components/conversations/GroupCreateModal"
 import Skeleton from "@/components/ui/Skeleton"
 import { HiPencilSquare } from "react-icons/hi2"
 
-export default function ConversationList() {
+export default function ConversationList({
+  initialConversations,
+}: {
+  initialConversations?: FullConversationType[]
+}) {
   const pathname = usePathname()
-  const { conversations, isLoading } = useConversations()
+  const { conversations, isLoading } = useConversations(initialConversations)
   const [showGroupModal, setShowGroupModal] = useState(false)
   const isOnConversationsPage = pathname === "/conversations"
 

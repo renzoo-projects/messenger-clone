@@ -4,12 +4,14 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import toast from "react-hot-toast"
+import dynamic from "next/dynamic"
 import ConversationHeader from "@/components/conversations/ConversationHeader"
-import SummaryBanner from "@/components/conversations/SummaryBanner"
 import MessageList from "@/components/conversations/MessageList"
 import MessageInput from "@/components/conversations/MessageInput"
-import ProfileDrawer from "@/components/conversations/ProfileDrawer"
-import GroupDrawer from "@/components/conversations/GroupDrawer"
+
+const ProfileDrawer = dynamic(() => import("@/components/conversations/ProfileDrawer"))
+const GroupDrawer = dynamic(() => import("@/components/conversations/GroupDrawer"))
+const SummaryBanner = dynamic(() => import("@/components/conversations/SummaryBanner"))
 import useConversation from "@/hooks/useConversation"
 import { getPusherClient } from "@/lib/pusherClient"
 import { hapticLight } from "@/lib/haptic"

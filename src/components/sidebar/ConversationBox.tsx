@@ -54,6 +54,10 @@ export default function ConversationBox({
     router.push(`/conversations/${conversation.id}`)
   }, [router, conversation.id, swiped])
 
+  const handleMouseEnter = useCallback(() => {
+    router.prefetch(`/conversations/${conversation.id}`)
+  }, [router, conversation.id])
+
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault()
@@ -166,6 +170,7 @@ export default function ConversationBox({
           ref={rowRef}
           onClick={handleClick}
           onKeyDown={handleKeyDown}
+          onMouseEnter={handleMouseEnter}
           role="button"
           tabIndex={0}
           onTouchStart={handleTouchStart}

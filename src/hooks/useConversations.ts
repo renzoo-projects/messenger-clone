@@ -5,15 +5,15 @@ import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/types"
 import { getPusherClient } from "@/lib/pusherClient"
 
-export function useConversations() {
+export function useConversations(initialData?: FullConversationType[]) {
   const { data: session } = useSession()
-  const [conversations, setConversations] = useState<FullConversationType[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [conversations, setConversations] = useState<FullConversationType[]>(initialData || [])
+  const [isLoading, setIsLoading] = useState(!initialData)
   const channelRef = useRef<any>(null)
   const userId = session?.user?.id
 
   useEffect(() => {
-    if (!userId) {
+    if (initialData || !userId) {
       setIsLoading(false)
       return
     }
@@ -32,7 +32,7 @@ export function useConversations() {
     }
 
     fetchConversations()
-  }, [userId])
+  }, [userId, initialData])
 
   useEffect(() => {
     if (!userId) return
