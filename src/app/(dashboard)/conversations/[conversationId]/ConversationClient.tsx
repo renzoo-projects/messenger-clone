@@ -262,7 +262,7 @@ export default function ConversationClient({
           setSummaryMessageCount(0)
         }}
       />
-      <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} />
+      <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
       <MessageInput onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
     </div>
   )

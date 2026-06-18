@@ -35,6 +35,30 @@ body {
   to { transform: translateY(0); opacity: 1; }
 }
 
+@keyframes typingDot {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+@utility animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+@utility animate-slideUp {
+  animation: slideUp 0.3s ease-out both;
+}
+@utility animate-slideInRight {
+  animation: slideInRight 0.3s ease-out both;
+}
+@utility animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out both;
+}
+@utility animate-slideDown {
+  animation: slideDown 0.3s ease-out both;
+}
+@utility animate-typing-dot {
+  animation: typingDot 1.4s infinite ease-in-out;
+}
+
 
 :root {
   --select-bg: #fff;
