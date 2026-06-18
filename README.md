@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Messenger Clone
+
+A real-time messaging application built with Next.js 16.
+
+## What This Does
+
+Lets you send messages in real time with other users. Sign in with Google, GitHub, or email/password. Create conversations, send text and images, and get AI-powered summaries of recent messages. Features dark mode, seen indicators, and a Messenger-style UX.
+
+## Tech Stack
+
+| Category | Choice |
+|----------|--------|
+| Framework | Next.js 16 (App Router) |
+| Auth | Auth.js v5 |
+| Database | MongoDB + Prisma |
+| Real-time | Pusher |
+| File Uploads | Cloudinary |
+| AI Summaries | Groq (Llama 3.3 70B) |
+| Styling | Tailwind v4 |
+| State Management | Zustand |
+| Forms / Validation | react-hook-form + Zod |
+| Language | TypeScript |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20+
+- A [MongoDB Atlas](https://cloud.mongodb.com) cluster
+- A [Pusher](https://dashboard.pusher.com) Channels app
+- A [Cloudinary](https://cloudinary.com) account
+- A [Groq](https://console.groq.com) API key
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Fill in all values in `.env.local`:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | MongoDB connection string |
+| `NEXTAUTH_SECRET` | Random secret for session encryption |
+| `NEXTAUTH_URL` | App URL (`http://localhost:3000` for dev) |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `NEXT_PUBLIC_PUSHER_APP_KEY` | Pusher app key (public) |
+| `PUSHER_APP_ID` | Pusher app ID |
+| `PUSHER_SECRET` | Pusher app secret |
+| `NEXT_PUBLIC_PUSHER_CLUSTER` | Pusher cluster (e.g. `us2`) |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
+| `CLOUDINARY_UPLOAD_PRESET` | Cloudinary unsigned upload preset |
+| `GROQ_API_KEY` | Groq API key |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then install and run:
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Open [http://localhost:3000](http://localhost:3000).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How It Works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Auth**: Auth.js v5 with Prisma adapter — credentials, Google, and GitHub providers.
+- **Real-time**: Messages and conversation updates fire Pusher events. Each user has a private channel for notifications.
+- **API routes**: RESTful handlers under `/api` for conversations, messages, uploads, seen state, and AI summaries.
+- **Server components**: Page shell is server-rendered with `auth()`. Client components handle interactivity (messaging, forms, image previews).
+- **Middleware**: Lightweight JWT check via `next-auth/jwt` — redirects unauthenticated users to the landing page. No Prisma dependency in Edge runtime.
+- **AI summaries**: `POST /api/conversations/[id]/summarize` fetches the last 20 messages and sends them to Groq's Llama 3.3 70B for bullet-point summarization.
+- **Images**: Rendered at natural aspect ratio outside message bubbles (Messenger-style). Image preview in input before sending.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Action |
+|---------|--------|
+| `npm run dev` | Start dev server |
+| `npm run build` | Generate Prisma client + build production |
+| `npm start` | Start production server |
+| `npm run lint` | Run ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+
+MIT
