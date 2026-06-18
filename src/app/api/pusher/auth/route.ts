@@ -11,10 +11,10 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData()
-    const socketId = formData.get("socket_id") as string
-    const channelName = formData.get("channel_name") as string
+    const socketId = formData.get("socket_id")
+    const channelName = formData.get("channel_name")
 
-    if (!socketId || !channelName) {
+    if (typeof socketId !== "string" || typeof channelName !== "string" || !socketId || !channelName) {
       return NextResponse.json(
         { error: "Missing socket_id or channel_name" },
         { status: 400 }

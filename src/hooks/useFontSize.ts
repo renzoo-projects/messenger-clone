@@ -9,8 +9,14 @@ interface FontSizeStore {
   setFontSize: (size: FontSize) => void
 }
 
+function getInitialFontSize(): FontSize {
+  if (typeof window === "undefined") return "md"
+  const stored = localStorage.getItem("font-size") as FontSize | null
+  return stored ?? "md"
+}
+
 export const useFontSize = create<FontSizeStore>((set) => ({
-  fontSize: "md",
+  fontSize: getInitialFontSize(),
   setFontSize: (size) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("font-size", size)

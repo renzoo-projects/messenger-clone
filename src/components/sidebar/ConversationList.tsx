@@ -85,7 +85,7 @@ export default function ConversationList({
       </div>
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto pb-16 lg:pb-0"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

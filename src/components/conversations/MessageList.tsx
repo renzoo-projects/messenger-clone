@@ -25,6 +25,7 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
   const { members } = useActiveList()
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [contextMenu, setContextMenu] = useState<{
     message: FullMessageType
@@ -32,9 +33,11 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
     y: number
   } | null>(null)
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current
+    if (!el) return true
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 150
+  }, [])
 
   useEffect(() => {
     if (!loadMore || !hasMore || !topRef.current) return
@@ -47,6 +50,12 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
     observer.observe(topRef.current)
     return () => observer.disconnect()
   }, [loadMore, hasMore])
+
+  useEffect(() => {
+    if (isNearBottom()) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, isNearBottom])
 
   useEffect(() => {
     if (!contextMenu) return
@@ -124,12 +133,13 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
   }
 
   return (
-    <div
-      className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800 px-4 py-6 space-y-4 min-h-0"
-      role="log"
-      aria-live="polite"
-      aria-label="Message history"
-    >
+      <div
+          ref={scrollContainerRef}
+          className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800 px-4 py-6 space-y-4 min-h-0"
+          role="log"
+          aria-live="polite"
+          aria-label="Message history"
+        >
       <div ref={topRef} />
       {loadingMore && (
         <div className="flex justify-center py-2">
@@ -187,14 +197,15 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
                     )}
                     {message.image && (
                       <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                        <Image
-                          src={message.image}
-                          alt={`Image shared by ${message.sender.name || "Unknown"}`}
-                          width={0}
-                          height={0}
-                          className="rounded-xl max-w-60 w-full h-auto shadow-sm"
-                          sizes="240px"
-                        />
+                        <div className="relative min-w-[200px] min-h-[200px]">
+                          <Image
+                            src={message.image}
+                            alt={`Image shared by ${message.sender.name || "Unknown"}`}
+                            fill
+                            className="rounded-xl object-cover shadow-sm"
+                            sizes="240px"
+                          />
+                        </div>
                         {message.body && (
                           <div
                             className={clsx(

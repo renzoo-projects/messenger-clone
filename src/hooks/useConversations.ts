@@ -50,9 +50,13 @@ export function useConversations(initialData?: FullConversationType[]) {
       })
     })
 
-    channel.bind("conversation:update", (conversation: FullConversationType) => {
+    channel.bind("conversation:update", (data: any) => {
       setConversations((prev) =>
-        prev.map((c) => (c.id === conversation.id ? conversation : c))
+        prev.map((c) => {
+          if (c.id !== data.id) return c
+          if ("users" in data) return data as FullConversationType
+          return { ...c, unreadCount: data.unreadCount ?? 0 }
+        })
       )
     })
 

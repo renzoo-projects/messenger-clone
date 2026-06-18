@@ -64,9 +64,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Invalid session: missing user ID")
         }
         session.user.id = token.sub
-        session.user.name = token.name as string
-        session.user.email = token.email as string
-        session.user.image = token.picture as string
+        session.user.name = token.name as string ?? null
+        session.user.email = token.email as string ?? null
+        session.user.image = token.picture as string ?? null
       }
       return session
     },

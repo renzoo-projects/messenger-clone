@@ -2,7 +2,7 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import prismadb from "@/lib/prismadb"
 import pusherServer from "@/lib/pusherServer"
-import { assertConversationMember } from "@/lib/conversationAuth"
+import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
 import { sanitizeUser } from "@/lib/safeUser"
 
 export async function POST(
@@ -61,6 +61,9 @@ export async function POST(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("SEEN_POST", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

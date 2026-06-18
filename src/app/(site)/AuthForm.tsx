@@ -35,7 +35,7 @@ export default function AuthForm() {
         })
 
         if (result?.error) {
-          toast.error("Invalid credentials")
+          toast.error(result.error || "Invalid credentials")
           return
         }
 
@@ -72,9 +72,13 @@ export default function AuthForm() {
     }
   }
 
-  const socialLogin = (provider: string) => {
+  const socialLogin = async (provider: string) => {
     setIsLoading(true)
-    signIn(provider, { callbackUrl: "/conversations" })
+    try {
+      await signIn(provider, { callbackUrl: "/conversations" })
+    } catch {
+      setIsLoading(false)
+    }
   }
 
   return (

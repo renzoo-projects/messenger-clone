@@ -88,13 +88,17 @@ export async function POST(request: Request) {
         )
       }
 
+      const uniqueMembers = (members as string[]).filter(
+        (id) => id !== session?.user?.id
+      )
+
       const conversation = await prismadb.conversation.create({
         data: {
           name,
           isGroup: true,
           users: {
             create: [
-              ...members.map((memberId: string) => ({
+              ...uniqueMembers.map((memberId: string) => ({
                 userId: memberId,
               })),
               { userId: session.user.id },

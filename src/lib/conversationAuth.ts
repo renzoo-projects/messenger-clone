@@ -14,12 +14,19 @@ export async function verifyConversationMembership(
   return conversation !== null
 }
 
+export class ForbiddenError extends Error {
+  constructor(message = "Forbidden") {
+    super(message)
+    this.name = "ForbiddenError"
+  }
+}
+
 export async function assertConversationMember(
   userId: string,
   conversationId: string
 ): Promise<void> {
   if (!(await verifyConversationMembership(userId, conversationId))) {
-    throw new Error("Forbidden")
+    throw new ForbiddenError()
   }
 }
 

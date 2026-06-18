@@ -9,14 +9,14 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData()
-    const file = formData.get("file") as File | null
-
-    if (!file) {
+    const raw = formData.get("file")
+    if (!(raw instanceof File)) {
       return NextResponse.json(
         { error: "No file provided" },
         { status: 400 }
       )
     }
+    const file = raw
 
     const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"]
     const MAX_SIZE = 10 * 1024 * 1024

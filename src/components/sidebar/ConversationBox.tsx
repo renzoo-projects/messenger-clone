@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState, memo } from "react"
+import { useCallback, useMemo, useRef, useState, useEffect, memo } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
@@ -30,6 +30,27 @@ const ConversationBox = memo(function ConversationBox({
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const rowRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!showMenu) return
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        menuButtonRef.current &&
+        !menuButtonRef.current.contains(e.target as Node)
+      ) {
+        setShowMenu(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
+    }
+  }, [showMenu])
 
   const otherUser = useMemo(() => {
     const currentUserId = session?.user?.id
@@ -250,6 +271,7 @@ const ConversationBox = memo(function ConversationBox({
       {!swiped && (
         <div className="absolute right-0 top-0 bottom-0 flex items-center pr-3" ref={menuRef}>
           <button
+            ref={menuButtonRef}
             onClick={(e) => {
               e.stopPropagation()
               setShowMenu((prev) => !prev)
@@ -261,14 +283,6 @@ const ConversationBox = memo(function ConversationBox({
             <HiEllipsisHorizontal className="h-5 w-5" />
           </button>
           {showMenu && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowMenu(false)
-                }}
-              />
               <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
                 <button
                   onClick={handleMarkRead}
@@ -292,7 +306,6 @@ const ConversationBox = memo(function ConversationBox({
                   Delete
                 </button>
               </div>
-            </>
           )}
         </div>
       )}

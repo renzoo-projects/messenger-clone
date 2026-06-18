@@ -5,7 +5,7 @@ import pusherServer from "@/lib/pusherServer"
 import { transformConversation } from "@/lib/conversationTransformer"
 import { sanitizeUser } from "@/lib/safeUser"
 import { messageSchema } from "@/lib/validations"
-import { assertConversationMember } from "@/lib/conversationAuth"
+import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
 
 export async function GET(
   request: Request,
@@ -41,18 +41,24 @@ export async function GET(
 
     const nextCursor = hasMore ? messages[messages.length - 1]?.id : null
 
-    const sanitized = messages.reverse().map((m) => ({
-      ...m,
-      sender: m.sender ? sanitizeUser(m.sender) : null,
-      seenBy: m.seenBy.map((sm) => ({
-        ...sm,
-        user: sanitizeUser(sm.user),
-      })),
-    }))
+    const sanitized = messages
+      .filter((m) => m.sender)
+      .reverse()
+      .map((m) => ({
+        ...m,
+        sender: sanitizeUser(m.sender!),
+        seenBy: m.seenBy.map((sm) => ({
+          ...sm,
+          user: sanitizeUser(sm.user),
+        })),
+      }))
 
     return NextResponse.json({ messages: sanitized, nextCursor })
   } catch (error) {
     console.error("MESSAGES_GET", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }
@@ -214,6 +220,9 @@ export async function POST(
     return NextResponse.json(newMessage, { status: 201 })
   } catch (error) {
     console.error("[MESSAGES_POST] Error:", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

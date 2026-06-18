@@ -16,7 +16,6 @@ export function getPusherClient(): PusherClient {
         cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
         authEndpoint: "/api/pusher/auth",
         forceTLS: true,
-        enabledTransports: ["ws", "wss"],
       }
     )
   }
