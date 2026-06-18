@@ -15,7 +15,7 @@ export default function ProfileDrawer() {
   }, [user?.createdAt])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} variant="sheet">
+    <Modal isOpen={isOpen} onClose={onClose}>
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
         <button

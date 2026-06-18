@@ -84,7 +84,7 @@ export default function SettingsModal() {
   }
 
   return (
-    <Modal isOpen={settingsModal.isOpen} onClose={settingsModal.onClose} variant="sheet">
+    <Modal isOpen={settingsModal.isOpen} onClose={settingsModal.onClose}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Settings</h2>

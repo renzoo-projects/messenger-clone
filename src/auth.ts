@@ -52,6 +52,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id
+        token.name = user.name
+        token.email = user.email
+        token.picture = user.image
       }
       return token
     },
@@ -61,6 +64,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error("Invalid session: missing user ID")
         }
         session.user.id = token.sub
+        session.user.name = token.name as string
+        session.user.email = token.email as string
+        session.user.image = token.picture as string
       }
       return session
     },

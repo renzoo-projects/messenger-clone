@@ -79,7 +79,7 @@ export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalPr
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} variant="sheet">
+    <Modal isOpen={isOpen} onClose={onClose}>
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Create Group</h2>
       </div>
