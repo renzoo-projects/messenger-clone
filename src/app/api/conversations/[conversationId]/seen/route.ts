@@ -2,8 +2,8 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import prismadb from "@/lib/prismadb"
 import pusherServer from "@/lib/pusherServer"
-import { transformConversation } from "@/lib/conversationTransformer"
 import { assertConversationMember } from "@/lib/conversationAuth"
+import { sanitizeUser } from "@/lib/safeUser"
 
 export async function POST(
   _request: Request,
@@ -18,51 +18,51 @@ export async function POST(
     const { conversationId } = await params
     await assertConversationMember(session.user.id, conversationId)
 
-    const messages = await prismadb.message.findMany({
+    const currentUserId = session.user.id
+    const messageIds = await prismadb.message.findMany({
       where: {
         conversationId,
         senderId: { not: session.user.id },
-        seenBy: {
-          none: { userId: session.user.id },
-        },
+        seenBy: { none: { userId: session.user.id } },
       },
-      include: { sender: true },
+      select: { id: true },
     })
 
-    for (const message of messages) {
-      await prismadb.seenMessage.create({
-        data: {
-          messageId: message.id,
-          userId: session.user.id,
-        },
+    const currentUserData = await prismadb.user.findUnique({
+      where: { id: currentUserId },
+      select: { id: true, name: true, image: true, email: true, emailVerified: true, hashedPassword: true, createdAt: true, updatedAt: true },
+    })
+
+    if (messageIds.length > 0) {
+      await prismadb.seenMessage.createMany({
+        data: messageIds.map((m) => ({
+          messageId: m.id,
+          userId: currentUserId,
+        })),
       })
 
-      await pusherServer.trigger(
-        `private-conversation-${conversationId}`,
-        "message:seen",
-        { messageId: message.id, userId: session.user.id }
+      const seenPayload = (m: { id: string }) => ({
+        messageId: m.id,
+        userId: currentUserId,
+        user: sanitizeUser(currentUserData!),
+      })
+
+      await Promise.all(
+        messageIds.map((m) =>
+          pusherServer.trigger(
+            `private-conversation-${conversationId}`,
+            "message:seen",
+            seenPayload(m)
+          )
+        )
       )
     }
 
-    const conversation = await prismadb.conversation.findUnique({
-      where: { id: conversationId },
-      include: {
-        users: { include: { user: true } },
-        messages: {
-          include: { sender: true, seenBy: { include: { user: true } } },
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
-      },
-    })
-
-    if (conversation) {
-      await pusherServer.trigger(
-        `private-${session.user.id}`,
-        "conversation:update",
-        { ...transformConversation(conversation), unreadCount: 0 }
-      )
-    }
+    await pusherServer.trigger(
+      `private-${session.user.id}`,
+      "conversation:update",
+      { id: conversationId, unreadCount: 0 }
+    )
 
     return NextResponse.json({ success: true })
   } catch (error) {

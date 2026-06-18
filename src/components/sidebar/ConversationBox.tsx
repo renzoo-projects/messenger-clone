@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useMemo, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState, memo } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
@@ -18,7 +18,7 @@ interface ConversationBoxProps {
 
 const SWIPE_THRESHOLD = 80
 
-export default function ConversationBox({
+const ConversationBox = memo(function ConversationBox({
   conversation,
   selected,
 }: ConversationBoxProps) {
@@ -279,4 +279,6 @@ export default function ConversationBox({
       )}
     </div>
   )
-}
+})
+
+export default ConversationBox

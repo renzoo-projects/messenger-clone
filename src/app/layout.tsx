@@ -11,6 +11,17 @@ const geist = Geist({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Messenger Clone",
   description: "Real-time chat application",
+  openGraph: {
+    title: "Messenger Clone",
+    description: "Real-time chat application",
+    type: "website",
+    siteName: "Messenger Clone",
+  },
+  twitter: {
+    card: "summary",
+    title: "Messenger Clone",
+    description: "Real-time chat application",
+  },
 }
 
 export default function RootLayout({

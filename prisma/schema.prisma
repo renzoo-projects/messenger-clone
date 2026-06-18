@@ -22,6 +22,8 @@ model User {
   conversations      ConversationUser[]
   messages           Message[]
   seenMessages       SeenMessage[]
+
+  @@index([createdAt])
 }
 
 model Account {
@@ -41,6 +43,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -49,6 +52,8 @@ model Session {
   userId       String  
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -69,6 +74,9 @@ model Conversation {
 
   users       ConversationUser[]
   messages    Message[]
+
+  @@index([updatedAt])
+  @@index([createdAt])
 }
 
 model ConversationUser {
@@ -95,6 +103,9 @@ model Message {
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   seenBy       SeenMessage[]
+
+  @@index([conversationId, senderId])
+  @@index([conversationId, createdAt])
 }
 
 model SeenMessage {
@@ -107,5 +118,6 @@ model SeenMessage {
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([messageId, userId])
+  @@index([userId])
 }
 

@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
+import dynamic from "next/dynamic"
 import toast from "react-hot-toast"
-import Select from "react-select"
 import Modal from "@/components/ui/Modal"
+
+const Select = dynamic(() => import("react-select"), { ssr: false })
 import Button from "@/components/ui/Button"
 import { SafeUser } from "@/types"
 import { HiCheck, HiXMark } from "react-icons/hi2"

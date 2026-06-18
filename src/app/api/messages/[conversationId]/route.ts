@@ -8,7 +8,7 @@ import { messageSchema } from "@/lib/validations"
 import { assertConversationMember } from "@/lib/conversationAuth"
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
@@ -18,18 +18,30 @@ export async function GET(
     }
 
     const { conversationId } = await params
-    await assertConversationMember(session.user.id, conversationId)
+    const currentUserId = session.user.id
+    await assertConversationMember(currentUserId, conversationId)
+
+    const url = new URL(request.url)
+    const cursor = url.searchParams.get("cursor")
+    const take = Math.min(Number(url.searchParams.get("take")) || 50, 100)
 
     const messages = await prismadb.message.findMany({
       where: { conversationId },
+      take: take + 1,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      orderBy: { createdAt: "desc" },
       include: {
         sender: true,
         seenBy: { include: { user: true } },
       },
-      orderBy: { createdAt: "asc" },
     })
 
-    const sanitized = messages.map((m) => ({
+    const hasMore = messages.length > take
+    if (hasMore) messages.pop()
+
+    const nextCursor = hasMore ? messages[messages.length - 1]?.id : null
+
+    const sanitized = messages.reverse().map((m) => ({
       ...m,
       sender: m.sender ? sanitizeUser(m.sender) : null,
       seenBy: m.seenBy.map((sm) => ({
@@ -38,7 +50,7 @@ export async function GET(
       })),
     }))
 
-    return NextResponse.json(sanitized)
+    return NextResponse.json({ messages: sanitized, nextCursor })
   } catch (error) {
     console.error("MESSAGES_GET", error)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
@@ -55,8 +67,10 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const currentUserId = session.user.id
+
     const { conversationId } = await params
-    await assertConversationMember(session.user.id, conversationId)
+    await assertConversationMember(currentUserId, conversationId)
     const body = await request.json()
     const parsed = messageSchema.safeParse(body)
     if (!parsed.success) {
@@ -80,9 +94,9 @@ export async function POST(
         body: message || null,
         image: image || null,
         conversationId,
-        senderId: session.user.id,
+        senderId: currentUserId,
         seenBy: {
-          create: { userId: session.user.id },
+          create: { userId: currentUserId },
         },
       },
       select: {
@@ -112,53 +126,90 @@ export async function POST(
       },
     })
 
-    const conversation = await prismadb.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-      include: {
-        users: { include: { user: true } },
-        messages: {
-          include: {
-            sender: true,
-            seenBy: { include: { user: true } },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
-      },
-    })
-
     await pusherServer.trigger(
       `private-conversation-${conversationId}`,
       "messages:new",
       newMessage
     )
 
-    const transformed = transformConversation(conversation)
-
-    const results = await Promise.allSettled(
-      conversation.users.map(async (member) => {
-        const unreadCount = await prismadb.message.count({
-          where: {
-            conversationId,
-            senderId: { not: member.user.id },
-            seenBy: { none: { userId: member.user.id } },
+    const [convData, lastMsg] = await Promise.all([
+      prismadb.conversation.findUnique({
+        where: { id: conversationId },
+        select: {
+          id: true,
+          name: true,
+          isGroup: true,
+          createdAt: true,
+          updatedAt: true,
+          users: {
+            select: {
+              userId: true,
+              user: {
+                select: {
+                  id: true, name: true, image: true, email: true,
+                  emailVerified: true, createdAt: true, updatedAt: true,
+                },
+              },
+            },
           },
-        })
+        },
+      }),
+      prismadb.message.findFirst({
+        where: { conversationId },
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true, body: true, image: true, createdAt: true,
+          sender: {
+            select: {
+              id: true, name: true, image: true, email: true,
+              emailVerified: true, createdAt: true, updatedAt: true,
+            },
+          },
+          seenBy: {
+            select: {
+              userId: true,
+              user: {
+                select: {
+                  id: true, name: true, image: true, email: true,
+                  emailVerified: true, createdAt: true, updatedAt: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ])
 
-        await pusherServer.trigger(
-          `private-${member.user.id}`,
-          "conversation:update",
-          { ...transformed, unreadCount }
+    const transformed = convData
+      ? transformConversation({ ...convData, messages: lastMsg ? [lastMsg] : [] })
+      : null
+
+    const memberIds = convData?.users.map((u) => u.userId) || []
+
+    const unreadCounts = await Promise.all(
+      memberIds
+        .filter((uid) => uid !== currentUserId)
+        .map((userId) =>
+          prismadb.message
+            .count({
+              where: {
+                conversationId,
+                senderId: { not: userId },
+                seenBy: { none: { userId } },
+              },
+            })
+            .then((count) => ({ userId, count }))
         )
-      })
     )
 
-    for (const result of results) {
-      if (result.status === "rejected") {
-        console.error("[MESSAGES_POST] Pusher conversation:update failed:", result.reason)
-      }
-    }
+    await Promise.allSettled(
+      unreadCounts.map(({ userId, count }) =>
+        pusherServer.trigger(`private-${userId}`, "conversation:update", {
+          ...transformed,
+          unreadCount: count,
+        })
+      )
+    )
 
     return NextResponse.json(newMessage, { status: 201 })
   } catch (error) {

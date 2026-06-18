@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useMemo } from "react"
+import { useRef, useEffect, useMemo, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import clsx from "clsx"
@@ -12,12 +12,32 @@ import useActiveList from "@/hooks/useActiveList"
 interface MessageListProps {
   messages: FullMessageType[]
   isGroup?: boolean
+  loadMore?: () => void
+  hasMore?: boolean
+  loadingMore?: boolean
 }
 
-export default function MessageList({ messages, isGroup }: MessageListProps) {
+export default function MessageList({ messages, isGroup, loadMore, hasMore, loadingMore }: MessageListProps) {
   const { data: session } = useSession()
   const { members } = useActiveList()
   const bottomRef = useRef<HTMLDivElement>(null)
+  const topRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
+  useEffect(() => {
+    if (!loadMore || !hasMore || !topRef.current) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore()
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(topRef.current)
+    return () => observer.disconnect()
+  }, [loadMore, hasMore])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -52,6 +72,12 @@ export default function MessageList({ messages, isGroup }: MessageListProps) {
       aria-live="polite"
       aria-label="Message history"
     >
+      <div ref={topRef} />
+      {loadingMore && (
+        <div className="flex justify-center py-2">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+        </div>
+      )}
       {messages.map((message, index) => {
         const isOwn = message.sender.id === session?.user?.id
         const seenText = seenByText(message)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useConversations } from "@/hooks/useConversations"
 import { FullConversationType } from "@/types"
@@ -19,8 +19,12 @@ export default function ConversationList({
   const { conversations, isLoading } = useConversations(initialConversations)
   const [showGroupModal, setShowGroupModal] = useState(false)
   const isOnConversationsPage = pathname === "/conversations"
+  const prefetchedRef = useRef(false)
 
   useEffect(() => {
+    if (prefetchedRef.current) return
+    if (conversations.length === 0) return
+    prefetchedRef.current = true
     conversations.forEach((conv) => {
       router.prefetch(`/conversations/${conv.id}`)
     })

@@ -35,6 +35,8 @@ export default function ConversationClient({
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryMessageCount, setSummaryMessageCount] = useState(0)
+  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [loadingMore, setLoadingMore] = useState(false)
   const channelRef = useRef<any>(null)
 
   useEffect(() => {
@@ -45,6 +47,29 @@ export default function ConversationClient({
       setSummaryMessageCount(0)
     }
   }, [conversationId, setConversationId])
+
+  useEffect(() => {
+    setMessages(initialConversation.messages)
+    setNextCursor(null)
+  }, [initialConversation])
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !nextCursor) return
+    setLoadingMore(true)
+    try {
+      const res = await fetch(
+        `/api/messages/${conversationId}?cursor=${nextCursor}&take=50`
+      )
+      if (!res.ok) throw new Error("Failed to load more")
+      const data = await res.json()
+      setMessages((prev) => [...data.messages, ...prev])
+      setNextCursor(data.nextCursor)
+    } catch {
+      toast.error("Failed to load older messages")
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [conversationId, nextCursor, loadingMore])
 
   useEffect(() => {
     if (!conversationId) return
@@ -63,6 +88,16 @@ export default function ConversationClient({
         if (prev.some((m) => m.id === message.id)) return prev
         return [...prev, message]
       })
+    })
+
+    channel.bind("message:seen", ({ messageId, userId, user }: { messageId: string; userId: string; user: any }) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId
+            ? { ...m, seenBy: [...m.seenBy.filter((s) => s.user.id !== userId), { userId, user }] }
+            : m
+        )
+      )
     })
 
     channel.bind("conversation:delete", () => {
@@ -100,7 +135,7 @@ export default function ConversationClient({
     }
   }, [conversationId])
 
-  const handleSendMessage = async (body: string, image?: string) => {
+  const handleSendMessage = useCallback(async (body: string, image?: string) => {
     const tempId = `temp-${Date.now()}`
     const currentUserId = session?.user?.id || ""
     const tempMessage: FullMessageType & { _status?: string } = {
@@ -136,7 +171,7 @@ export default function ConversationClient({
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
       toast.error("Failed to send message")
     }
-  }
+  }, [conversationId, session?.user?.id, session?.user?.name, session?.user?.image, session?.user?.email])
 
   const handleEngage = useCallback(async () => {
     if (!conversationId) return
@@ -183,7 +218,7 @@ export default function ConversationClient({
           setSummaryMessageCount(0)
         }}
       />
-      <MessageList messages={messages} isGroup={conversation.isGroup} />
+      <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} />
       <MessageInput onSend={handleSendMessage} onEngage={handleEngage} />
     </div>
   )
