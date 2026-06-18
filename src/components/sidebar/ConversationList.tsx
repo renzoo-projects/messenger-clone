@@ -52,8 +52,7 @@ export default function ConversationList() {
             {conversations.map((conversation, index) => (
               <div
                 key={conversation.id}
-                className="motion-safe:animate-slideUp"
-                style={{ animationDelay: `${Math.min(index * 40, 200)}ms` }}
+                className=""
               >
                 <ConversationBox
                   conversation={conversation}
