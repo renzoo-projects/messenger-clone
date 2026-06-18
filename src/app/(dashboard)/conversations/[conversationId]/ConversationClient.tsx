@@ -21,11 +21,13 @@ import { FullConversationType, FullMessageType } from "@/types"
 interface ConversationClientProps {
   initialConversation: FullConversationType
   conversationId: string
+  initialCursor?: string | null
 }
 
 export default function ConversationClient({
   initialConversation,
   conversationId,
+  initialCursor,
 }: ConversationClientProps) {
   const router = useRouter()
   const { data: session } = useSession()
@@ -35,7 +37,7 @@ export default function ConversationClient({
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryMessageCount, setSummaryMessageCount] = useState(0)
-  const [nextCursor, setNextCursor] = useState<string | null>(null)
+  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor ?? null)
   const [loadingMore, setLoadingMore] = useState(false)
   const channelRef = useRef<any>(null)
 
@@ -50,8 +52,8 @@ export default function ConversationClient({
 
   useEffect(() => {
     setMessages(initialConversation.messages)
-    setNextCursor(null)
-  }, [initialConversation])
+    setNextCursor(initialCursor ?? null)
+  }, [initialConversation, initialCursor])
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !nextCursor) return
@@ -90,10 +92,10 @@ export default function ConversationClient({
       })
     })
 
-    channel.bind("message:seen", ({ messageId, userId, user }: { messageId: string; userId: string; user: any }) => {
+    channel.bind("messages:seen", ({ messageIds, userId, user }: { messageIds: string[]; userId: string; user: any }) => {
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === messageId
+          messageIds.includes(m.id)
             ? { ...m, seenBy: [...m.seenBy.filter((s) => s.user.id !== userId), { userId, user }] }
             : m
         )

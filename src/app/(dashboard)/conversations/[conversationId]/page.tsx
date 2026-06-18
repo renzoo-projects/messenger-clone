@@ -27,7 +27,8 @@ export default async function ConversationPage({
             sender: true,
             seenBy: { include: { user: true } },
           },
-          orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "desc" },
+          take: 50,
         },
       },
     }),
@@ -49,6 +50,13 @@ export default async function ConversationPage({
     notFound()
   }
 
+  conversation.messages.reverse()
+
+  const initialCursor =
+    conversation.messages.length > 0
+      ? conversation.messages[0].id
+      : null
+
   const transformed = transformConversation(conversation)
   transformed.unreadCount = unreadCount
 
@@ -56,6 +64,7 @@ export default async function ConversationPage({
     <ConversationClient
       initialConversation={transformed}
       conversationId={conversationId}
+      initialCursor={initialCursor}
     />
   )
 }

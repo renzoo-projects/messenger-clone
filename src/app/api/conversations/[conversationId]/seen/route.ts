@@ -22,15 +22,10 @@ export async function POST(
     const messageIds = await prismadb.message.findMany({
       where: {
         conversationId,
-        senderId: { not: session.user.id },
-        seenBy: { none: { userId: session.user.id } },
+        senderId: { not: currentUserId },
+        seenBy: { none: { userId: currentUserId } },
       },
       select: { id: true },
-    })
-
-    const currentUserData = await prismadb.user.findUnique({
-      where: { id: currentUserId },
-      select: { id: true, name: true, image: true, email: true, emailVerified: true, hashedPassword: true, createdAt: true, updatedAt: true },
     })
 
     if (messageIds.length > 0) {
@@ -41,25 +36,24 @@ export async function POST(
         })),
       })
 
-      const seenPayload = (m: { id: string }) => ({
-        messageId: m.id,
-        userId: currentUserId,
-        user: sanitizeUser(currentUserData!),
+      const currentUserData = await prismadb.user.findUnique({
+        where: { id: currentUserId },
+        select: { id: true, name: true, image: true, email: true, emailVerified: true, hashedPassword: true, createdAt: true, updatedAt: true },
       })
 
-      await Promise.all(
-        messageIds.map((m) =>
-          pusherServer.trigger(
-            `private-conversation-${conversationId}`,
-            "message:seen",
-            seenPayload(m)
-          )
-        )
+      await pusherServer.trigger(
+        `private-conversation-${conversationId}`,
+        "messages:seen",
+        {
+          messageIds: messageIds.map((m) => m.id),
+          userId: currentUserId,
+          user: sanitizeUser(currentUserData!),
+        }
       )
     }
 
     await pusherServer.trigger(
-      `private-${session.user.id}`,
+      `private-${currentUserId}`,
       "conversation:update",
       { id: conversationId, unreadCount: 0 }
     )
