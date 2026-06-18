@@ -66,8 +66,8 @@ export default function MessageList({ messages, isGroup }: MessageListProps) {
             style={{ animationDelay: isLatest ? "0ms" : `${Math.min(index * 30, 150)}ms` }}
             aria-label={`Message from ${message.sender.name || "Unknown"}`}
           >
-            {isGroup && !isOwn && (
-              <div className="flex-shrink-0 mt-1">
+            {!isOwn && (
+              <div className="flex-shrink-0 mt-1 self-end">
                 <Avatar user={message.sender} size="sm" />
               </div>
             )}

@@ -36,11 +36,6 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
 
   if (!summary) return null
 
-  const lines = summary
-    .split("\n")
-    .filter((line) => line.trim())
-    .map((line) => line.replace(/^[-•*]\s*/, "").trim())
-
   return (
     <div className="group relative mx-3 mb-3 animate-slideDown rounded-xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-950/30">
       <button
@@ -52,20 +47,12 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
       </button>
 
       <div className="mb-2 text-sm font-semibold text-sky-700 dark:text-sky-300">
-        📋 {messageCount} new {messageCount === 1 ? "message" : "messages"}
+        {messageCount} new {messageCount === 1 ? "message" : "messages"}
       </div>
 
-      <ul className="space-y-1">
-        {lines.map((line, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300"
-          >
-            <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400 dark:bg-sky-500" />
-            {line}
-          </li>
-        ))}
-      </ul>
+      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+        {summary}
+      </p>
     </div>
   )
 }

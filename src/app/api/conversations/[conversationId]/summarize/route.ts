@@ -54,10 +54,11 @@ export async function POST(
       .join("\n")
 
     const systemPrompt =
-      "Summarize the following chat messages in 3-6 concise bullet points. " +
-      "Start each bullet with the sender's name. " +
+      "Summarize the following chat messages in 1-2 concise paragraphs. " +
+      "Write in natural, flowing prose that captures the key topics, decisions, " +
+      "and questions discussed. " +
       "Focus on decisions, questions, tasks, and key information. " +
-      "Keep each bullet to one line."
+      "Keep it brief — 3-6 sentences total."
 
     const groqResponse = await fetch(
       "https://api.groq.com/openai/v1/chat/completions",
