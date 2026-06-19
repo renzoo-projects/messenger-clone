@@ -12,6 +12,22 @@ interface SummaryBannerProps {
   onRetry: () => void
 }
 
+function LoadingSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-lg shadow-sky-100/30 dark:border-sky-900/30 dark:bg-gray-800/80 dark:shadow-black/20">
+      <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-sky-400 to-blue-500" />
+      <div className="p-5 pt-6">
+        <div className="mb-3 inline-flex h-7 w-28 animate-pulse rounded-full bg-sky-100 dark:bg-sky-900/50" />
+        <div className="space-y-2.5">
+          <div className="h-3 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+          <div className="h-3 w-3/4 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+          <div className="h-3 w-5/6 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const SummaryBanner: React.FC<SummaryBannerProps> = ({
   summary,
   messageCount,
@@ -27,48 +43,43 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
 
   if (loading) {
     return (
-      <div className="mx-3 mb-3 animate-slideDown rounded-xl border border-sky-200 bg-sky-50 p-4 shadow-sm dark:border-sky-800 dark:bg-sky-950/30">
-        <div className="flex items-center gap-2 mb-3">
-          <HiOutlineSparkles className="h-4 w-4 text-sky-500 animate-pulse" />
-          <span className="text-sm font-medium text-sky-600 dark:text-sky-400">
-            Generating summary&hellip;
-          </span>
-        </div>
-        <div className="space-y-2">
-          <div className="h-3 w-full animate-pulse rounded bg-sky-200 dark:bg-sky-800" />
-          <div className="h-3 w-3/4 animate-pulse rounded bg-sky-200 dark:bg-sky-800" />
-          <div className="h-3 w-5/6 animate-pulse rounded bg-sky-200 dark:bg-sky-800" />
-        </div>
+      <div className="mx-3 mb-3 animate-slideDown">
+        <LoadingSkeleton />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="mx-3 mb-3 animate-slideDown rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm dark:border-red-800 dark:bg-red-950/30">
-        <button
-          onClick={handleClose}
-          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-red-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-red-500 dark:hover:bg-red-900/50 dark:hover:text-gray-300"
-          aria-label="Dismiss"
-        >
-          <HiXMark className="h-4 w-4" />
-        </button>
+      <div className="mx-3 mb-3 animate-slideDown">
+        <div className="group relative overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 shadow-lg shadow-amber-100/30 dark:border-amber-900/30 dark:bg-amber-950/20 dark:shadow-black/20">
+          <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-amber-400 to-orange-500" />
+          <div className="p-5 pt-6">
+            <button
+              onClick={handleClose}
+              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-amber-400 opacity-0 transition-opacity hover:bg-amber-100 hover:text-amber-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-amber-500 group-hover:opacity-100 dark:hover:bg-amber-900/50 dark:hover:text-amber-300"
+              aria-label="Dismiss"
+            >
+              <HiXMark className="h-4 w-4" />
+            </button>
 
-        <div className="mb-2 text-sm font-semibold text-red-700 dark:text-red-300">
-          Couldn&apos;t generate summary
+            <div className="mb-1 text-sm font-semibold text-amber-800 dark:text-amber-200">
+              Couldn&apos;t generate summary
+            </div>
+
+            <p className="mb-4 text-sm text-amber-600/80 dark:text-amber-400/70">
+              The AI service timed out. Try again.
+            </p>
+
+            <button
+              onClick={onRetry}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-amber-700 active:scale-[0.97]"
+            >
+              <HiArrowPath className="h-3.5 w-3.5" />
+              Try again
+            </button>
+          </div>
         </div>
-
-        <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
-          The AI service timed out. Try again.
-        </p>
-
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700 active:scale-[0.97]"
-        >
-          <HiArrowPath className="h-3.5 w-3.5" />
-          Try again
-        </button>
       </div>
     )
   }
@@ -76,27 +87,34 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
   if (!summary) return null
 
   return (
-    <div className="group relative mx-3 mb-3 animate-slideDown rounded-xl border border-sky-200 bg-sky-50 p-4 shadow-sm dark:border-sky-800 dark:bg-sky-950/30">
-      <div className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-sky-400 dark:bg-sky-500" />
+    <div className="mx-3 mb-3 animate-slideDown">
+      <div className="group relative overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-lg shadow-sky-100/30 dark:border-sky-900/30 dark:bg-gray-800/80 dark:shadow-black/20">
+        <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-sky-400 to-blue-500" />
 
-      <button
-        onClick={handleClose}
-        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-sky-100 hover:text-gray-600 focus-visible:ring-2 focus-visible:ring-sky-500 dark:hover:bg-sky-900/50 dark:hover:text-gray-300"
-        aria-label="Dismiss summary"
-      >
-        <HiXMark className="h-4 w-4" />
-      </button>
+        <button
+          onClick={handleClose}
+          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-sky-50 hover:text-gray-500 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-sky-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:bg-sky-900/30 dark:hover:text-gray-400"
+          aria-label="Dismiss summary"
+        >
+          <HiXMark className="h-4 w-4" />
+        </button>
 
-      <div className="mb-2 flex items-center gap-1.5 pl-3">
-        <HiOutlineSparkles className="h-4 w-4 text-sky-500" />
-        <span className="text-sm font-semibold text-sky-700 dark:text-sky-300">
-          AI summary &middot; {messageCount} {messageCount === 1 ? "message" : "messages"}
-        </span>
+        <div className="p-5 pt-6">
+          <div className="mb-3 flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+              <HiOutlineSparkles className="h-3.5 w-3.5" />
+              AI summary
+            </span>
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              {messageCount} {messageCount === 1 ? "message" : "messages"}
+            </span>
+          </div>
+
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+            {summary}
+          </p>
+        </div>
       </div>
-
-      <p className="pl-3 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-        {summary}
-      </p>
     </div>
   )
 }
