@@ -10,18 +10,19 @@ import Modal from "@/components/ui/Modal"
 const Select = dynamic(() => import("react-select"), { ssr: false })
 import Button from "@/components/ui/Button"
 import { SafeUser } from "@/types"
-import { HiCheck, HiXMark } from "react-icons/hi2"
+import { HiCheck, HiXMark, HiUsers } from "react-icons/hi2"
 
-interface GroupCreateModalProps {
+interface NewConversationModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalProps) {
+export default function NewConversationModal({ isOpen, onClose }: NewConversationModalProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const [users, setUsers] = useState<SafeUser[]>([])
   const [selected, setSelected] = useState<{ value: string; label: string }[]>([])
+  const [groupMode, setGroupMode] = useState(false)
   const [groupName, setGroupName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
@@ -48,60 +49,74 @@ export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalPr
       label: user.name || user.email || "Unknown",
     }))
 
-  const handleCreate = async () => {
-    if (!groupName.trim() || selected.length < 2) {
-      toast.error("Group needs a name and at least 2 members")
+  const handleSubmit = async () => {
+    if (selected.length === 0) {
+      toast.error("Select at least one person")
+      return
+    }
+
+    if (groupMode && !groupName.trim()) {
+      toast.error("Group needs a name")
+      return
+    }
+
+    if (groupMode && selected.length < 2) {
+      toast.error("Group needs at least 2 members")
       return
     }
 
     setIsLoading(true)
     try {
+      const body = groupMode
+        ? { isGroup: true, name: groupName.trim(), members: selected.map((s) => s.value) }
+        : { userId: selected[0].value }
+
       const res = await fetch("/api/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          isGroup: true,
-          name: groupName.trim(),
-          members: selected.map((s) => s.value),
-        }),
+        body: JSON.stringify(body),
       })
 
-      if (!res.ok) throw new Error("Failed to create group")
+      if (!res.ok) throw new Error("Failed to create conversation")
 
       const conversation = await res.json()
       router.push(`/conversations/${conversation.id}`)
       onClose()
     } catch {
-      toast.error("Failed to create group")
+      toast.error(groupMode ? "Failed to create group" : "Failed to start conversation")
     } finally {
       setIsLoading(false)
     }
   }
 
+  const title = groupMode ? "Create Group" : "New Message"
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Create Group</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
       </div>
 
       <div className="px-6 py-4 space-y-4">
-        <div>
-          <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Group Name
-          </label>
-          <input
-            id="group-name"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Enter group name..."
-            disabled={isLoading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
-          />
-        </div>
+        {groupMode && (
+          <div>
+            <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Group Name
+            </label>
+            <input
+              id="group-name"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              placeholder="Enter group name..."
+              disabled={isLoading}
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+            />
+          </div>
+        )}
 
         <div>
-          <label id="add-members-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Add Members
+          <label id="recipients-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            To:
           </label>
           {usersLoading ? (
             <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
@@ -117,11 +132,11 @@ export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalPr
               options={options}
               value={selected}
               onChange={(newValue) => setSelected(newValue as typeof selected)}
-              placeholder="Select people..."
+              placeholder="Search people..."
               isDisabled={isLoading}
               className="text-sm"
               classNamePrefix="react-select"
-              aria-labelledby="add-members-label"
+              aria-labelledby="recipients-label"
               styles={{
                 control: (base, state) => ({
                   ...base,
@@ -229,6 +244,20 @@ export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalPr
             />
           )}
         </div>
+
+        {!groupMode && selected.length > 0 && (
+          <div className="flex items-center justify-center">
+            <button
+              type="button"
+              onClick={() => setGroupMode(true)}
+              disabled={isLoading}
+              className="flex items-center gap-2 text-sm text-sky-600 hover:text-sky-500 font-medium transition-colors"
+            >
+              <HiUsers className="h-4 w-4" />
+              Create group
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
@@ -243,11 +272,11 @@ export default function GroupCreateModal({ isOpen, onClose }: GroupCreateModalPr
         </Button>
         <Button
           variant="primary"
-          onClick={handleCreate}
-          disabled={isLoading || selected.length < 2 || !groupName.trim()}
+          onClick={handleSubmit}
+          disabled={isLoading || selected.length === 0 || (groupMode && (!groupName.trim() || selected.length < 2))}
           isLoading={isLoading}
           className="min-h-[44px] min-w-[44px]"
-          aria-label="Create group"
+          aria-label={groupMode ? "Create group" : "Start conversation"}
         >
           <HiCheck className="h-5 w-5" />
         </Button>

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useConversations } from "@/hooks/useConversations"
 import { FullConversationType } from "@/types"
 import ConversationBox from "./ConversationBox"
-import GroupCreateModal from "@/components/conversations/GroupCreateModal"
+import NewConversationModal from "@/components/conversations/NewConversationModal"
 import Skeleton from "@/components/ui/Skeleton"
 import { HiPencilSquare } from "react-icons/hi2"
 
@@ -69,7 +69,7 @@ export default function ConversationList({
 
   return (
     <div className={`${isOnConversationsPage ? "fixed inset-0 z-30 flex flex-col" : "hidden"} lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950`}>
-      <GroupCreateModal
+      <NewConversationModal
         isOpen={showGroupModal}
         onClose={() => setShowGroupModal(false)}
       />
@@ -78,14 +78,14 @@ export default function ConversationList({
         <button
           onClick={() => setShowGroupModal(true)}
           className="flex items-center justify-center h-11 w-11 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-150"
-          aria-label="Create group"
+          aria-label="New conversation"
         >
           <HiPencilSquare className="h-5 w-5" />
         </button>
       </div>
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto pb-16 lg:pb-0"
+        className="flex-1 overflow-y-auto lg:pb-0 [padding-bottom:max(4rem,env(safe-area-inset-bottom))]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}

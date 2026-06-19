@@ -1,19 +1,29 @@
 # Messenger Clone
 
-A real-time messaging application built with Next.js 16.
+A real-time chat application with AI-powered summaries, group conversations, and Messenger-style UX.
 
-## What This Does
+## Features
 
-Lets you send messages in real time with other users. Sign in with Google, GitHub, or email/password. Create conversations, send text and images, and get AI-powered summaries of recent messages. Features dark mode, seen indicators, and a Messenger-style UX.
+- **Real-time messaging** — Instant send/receive via Pusher Channels with optimistic sending (messages appear immediately)
+- **1-on-1 & group chats** — Create private conversations or multi-person groups with names and member management
+- **AI summaries** — Auto-triggered on unread conversations or one-click via the sparkles button (powered by Groq/Llama 3.3 70B)
+- **Multiple auth providers** — Sign in with Google, GitHub, or email/password via Auth.js v5
+- **Image sharing** — Upload images inline via Cloudinary with preview before sending
+- **Dark mode** — Toggle between light and dark themes with system preference detection
+- **Typing indicators** — See when others are typing in real time
+- **Seen receipts** — Double-check marks show when messages are read
+- **Online presence** — Green dots indicate active users via Pusher presence channels
+- **Text size control** — Choose from Small, Medium, Large, or Extra Large in Settings
+- **Responsive design** — Desktop sidebar layout with mobile bottom nav, swipe-to-delete, and pull-to-refresh
 
 ## Tech Stack
 
 | Category | Choice |
 |----------|--------|
 | Framework | Next.js 16 (App Router) |
-| Auth | Auth.js v5 |
+| Auth | Auth.js v5 (Prisma adapter) |
 | Database | MongoDB + Prisma |
-| Real-time | Pusher |
+| Real-time | Pusher Channels |
 | File Uploads | Cloudinary |
 | AI Summaries | Groq (Llama 3.3 70B) |
 | Styling | Tailwind v4 |
@@ -63,15 +73,25 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## How It Works
+## Project Structure
 
-- **Auth**: Auth.js v5 with Prisma adapter — credentials, Google, and GitHub providers.
-- **Real-time**: Messages and conversation updates fire Pusher events. Each user has a private channel for notifications.
-- **API routes**: RESTful handlers under `/api` for conversations, messages, uploads, seen state, and AI summaries.
-- **Server components**: Page shell is server-rendered with `auth()`. Client components handle interactivity (messaging, forms, image previews).
-- **Middleware**: Lightweight JWT check via `next-auth/jwt` — redirects unauthenticated users to the landing page. No Prisma dependency in Edge runtime.
-- **AI summaries**: `POST /api/conversations/[id]/summarize` fetches the last 20 messages and sends them to Groq's Llama 3.3 70B for bullet-point summarization.
-- **Images**: Rendered at natural aspect ratio outside message bubbles (Messenger-style). Image preview in input before sending.
+```
+src/
+├── app/
+│   ├── (dashboard)/     # Authenticated app shell
+│   │   ├── conversations/  # Conversation list + chat view
+│   │   └── users/          # People directory
+│   ├── (site)/           # Landing / auth pages
+│   └── api/              # RESTful API routes
+├── components/
+│   ├── conversations/    # MessageList, MessageInput, SummaryBanner, modals
+│   ├── sidebar/          # ConversationList, Sidebar, MobileFooter, SettingsModal
+│   ├── providers/        # Auth, Theme, Toast providers
+│   └── ui/               # Avatar, Button, Modal, EmptyState, Skeleton
+├── hooks/                # Zustand stores + custom hooks
+├── lib/                  # Prisma, Pusher, validation utilities
+└── types/                # TypeScript type definitions
+```
 
 ## Scripts
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useMemo, useCallback, useState } from "react"
+import { useRef, useEffect, useMemo, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import clsx from "clsx"
@@ -8,9 +8,7 @@ import { FullMessageType } from "@/types"
 import { format, isToday, isYesterday } from "date-fns"
 import Avatar from "@/components/ui/Avatar"
 import useActiveList from "@/hooks/useActiveList"
-import { hapticLight } from "@/lib/haptic"
 
-const REACTIONS = ["❤️", "👍", "😂", "😮", "😢", "🙏"] as const
 
 interface MessageListProps {
   messages: FullMessageType[]
@@ -28,12 +26,6 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const [contextMenu, setContextMenu] = useState<{
-    message: FullMessageType
-    x: number
-    y: number
-  } | null>(null)
 
   const typingUsers = useMemo(() => {
     if (!typingUserIds || typingUserIds.size === 0 || !conversation?.users) return []
@@ -67,39 +59,6 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
       bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, isNearBottom])
-
-  useEffect(() => {
-    if (!contextMenu) return
-    const handleClick = () => setContextMenu(null)
-    window.addEventListener("scroll", handleClick, true)
-    window.addEventListener("click", handleClick, true)
-    return () => {
-      window.removeEventListener("scroll", handleClick, true)
-      window.removeEventListener("click", handleClick, true)
-    }
-  }, [contextMenu])
-
-  const handleTouchStart = (message: FullMessageType, e: React.TouchEvent | React.MouseEvent) => {
-    longPressTimer.current = setTimeout(() => {
-      hapticLight()
-      const touch = "touches" in e ? e.touches[0] : e
-      setContextMenu({ message, x: touch.clientX, y: touch.clientY })
-    }, 500)
-  }
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current)
-      longPressTimer.current = undefined
-    }
-  }
-
-  const handleCopyMessage = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text)
-    } catch {}
-    setContextMenu(null)
-  }
 
   const formatDateHeader = useCallback((date: Date) => {
     if (isToday(date)) return "Today"
@@ -178,11 +137,6 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
                   key={message.id}
                   className={clsx("flex gap-2 mb-1", isOwn && "justify-end", animClass)}
                   style={{ animationDelay: isLatest ? "0ms" : `${Math.min(index * 30, 150)}ms` }}
-                  onTouchStart={(e) => handleTouchStart(message, e)}
-                  onTouchEnd={handleTouchEnd}
-                  onMouseDown={(e) => handleTouchStart(message, e)}
-                  onMouseUp={handleTouchEnd}
-                  onMouseLeave={handleTouchEnd}
                   aria-label={`Message from ${message.sender.name || "Unknown"}`}
                 >
                   {!isOwn && (
@@ -283,46 +237,6 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
               <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.16s" }} />
               <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.32s" }} />
             </div>
-          </div>
-        </div>
-      )}
-      {contextMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setContextMenu(null)}
-          onTouchEnd={() => setContextMenu(null)}
-        >
-          <div
-            className="absolute z-50 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-2 min-w-[200px]"
-            style={{
-              left: Math.min(contextMenu.x, window.innerWidth - 220),
-              top: Math.min(contextMenu.y, window.innerHeight - 200),
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-center gap-1 px-1 pb-2 mb-1 border-b border-gray-100 dark:border-gray-700">
-              {REACTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => {
-                    hapticLight()
-                    setContextMenu(null)
-                  }}
-                  className="h-9 w-9 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-lg transition-colors"
-                  aria-label={`React with ${emoji}`}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => handleCopyMessage(contextMenu.message.body || "")}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
-            >
-              Copy
-            </button>
           </div>
         </div>
       )}

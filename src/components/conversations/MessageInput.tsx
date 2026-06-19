@@ -136,7 +136,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isLoading}
-          className="rounded-full p-2.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
+          className="flex items-center justify-center h-11 w-11 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
           aria-label="Upload photo"
         >
           <HiPhoto className="h-6 w-6" />
@@ -148,16 +148,15 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           value={text}
           onChange={handleTextChange}
           onFocus={onEngage}
-          autoFocus
           placeholder="Type a message"
           disabled={isLoading}
           aria-label="Message text"
-          className="flex-1 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+          className="flex-1 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
         />
         <button
           type="submit"
           disabled={(!text.trim() && !previewFile) || isLoading}
-          className="rounded-full bg-sky-500 p-2.5 text-white hover:bg-sky-600 transition disabled:opacity-50"
+          className="flex items-center justify-center h-11 w-11 rounded-full bg-sky-500 text-white hover:bg-sky-600 transition disabled:opacity-50"
           aria-label="Send message"
         >
           {isLoading ? (

@@ -169,7 +169,7 @@ export default function Modal({ isOpen, onClose, children, variant = "center" }:
       />
       <div
         ref={dialogRef}
-        className={`relative z-10 w-full max-w-md mx-4 bg-white dark:bg-gray-900 rounded-xl shadow-xl transition-all duration-200 ${active ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        className={`relative z-10 w-full max-w-md mx-4 max-h-[85dvh] bg-white dark:bg-gray-900 rounded-xl shadow-xl transition-all duration-200 overflow-y-auto ${active ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
       >
         {children}
       </div>

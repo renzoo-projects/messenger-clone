@@ -103,6 +103,10 @@ select:focus-visible {
   background: hsl(0 0% 30%);
 }
 
+html[data-font-size="sm"] {
+  font-size: 90%;
+}
+
 html[data-font-size="lg"] {
   font-size: 110%;
 }

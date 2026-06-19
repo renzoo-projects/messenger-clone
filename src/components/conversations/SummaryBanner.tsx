@@ -57,7 +57,7 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
           <div className="p-5 pt-6">
             <button
               onClick={handleClose}
-              className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-amber-400 opacity-0 transition-opacity hover:bg-amber-100 hover:text-amber-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-amber-500 group-hover:opacity-100 dark:hover:bg-amber-900/50 dark:hover:text-amber-300"
+              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-amber-400 opacity-0 transition-opacity hover:bg-amber-100 hover:text-amber-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-amber-500 group-hover:opacity-100 dark:hover:bg-amber-900/50 dark:hover:text-amber-300"
               aria-label="Dismiss"
             >
               <HiXMark className="h-4 w-4" />
@@ -93,7 +93,7 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
 
         <button
           onClick={handleClose}
-          className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-sky-50 hover:text-gray-500 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-sky-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:bg-sky-900/30 dark:hover:text-gray-400"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-sky-50 hover:text-gray-500 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-sky-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:bg-sky-900/30 dark:hover:text-gray-400"
           aria-label="Dismiss summary"
         >
           <HiXMark className="h-4 w-4" />

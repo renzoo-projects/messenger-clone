@@ -92,7 +92,7 @@ export default function UsersPage() {
         <div className="px-5 py-4 border-b">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">People</h2>
         </div>
-        <div className="flex-1 overflow-y-auto motion-safe:animate-fadeIn">
+        <div className="flex-1 overflow-y-auto pb-16 motion-safe:animate-fadeIn">
           {users.map((user, index) => (
             <div
               key={user.id}
