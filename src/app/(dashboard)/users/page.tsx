@@ -16,37 +16,17 @@ export default function UsersPage() {
   const [creating, setCreating] = useState<string | null>(null)
 
   useEffect(() => {
-    const CACHE_KEY = "messenger-users"
-    const CACHE_TTL = 5 * 60 * 1000
+    if (!session?.user?.id) {
+      setIsLoading(false)
+      return
+    }
 
     const fetchUsers = async () => {
-      if (!session?.user?.id) {
-        setIsLoading(false)
-        return
-      }
-
-      try {
-        const cached = sessionStorage.getItem(CACHE_KEY)
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached)
-          if (Date.now() - timestamp < CACHE_TTL) {
-            if (Array.isArray(data)) setUsers(data)
-            setIsLoading(false)
-            return
-          }
-        }
-      } catch {}
-
       try {
         const res = await fetch("/api/users")
         if (!res.ok) throw new Error("Failed to load users")
         const data = await res.json()
-        if (Array.isArray(data)) {
-          setUsers(data)
-          try {
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
-          } catch {}
-        }
+        if (Array.isArray(data)) setUsers(data)
       } catch {
         toast.error("Failed to load users")
       } finally {
