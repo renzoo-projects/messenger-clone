@@ -43,7 +43,7 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
 
   if (loading) {
     return (
-      <div className="mx-3 mb-3 animate-slideDown">
+      <div className="absolute left-3 right-3 top-3 z-10 animate-slideDown">
         <LoadingSkeleton />
       </div>
     )
@@ -51,7 +51,7 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
 
   if (error) {
     return (
-      <div className="mx-3 mb-3 animate-slideDown">
+      <div className="absolute left-3 right-3 top-3 z-10 animate-slideDown">
         <div className="group relative overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 shadow-lg shadow-amber-100/30 dark:border-amber-900/30 dark:bg-amber-950/20 dark:shadow-black/20">
           <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-amber-400 to-orange-500" />
           <div className="p-5 pt-6">
@@ -87,7 +87,7 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
   if (!summary) return null
 
   return (
-    <div className="mx-3 mb-3 animate-slideDown">
+    <div className="absolute left-3 right-3 top-3 z-10 animate-slideDown">
       <div className="group relative overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-lg shadow-sky-100/30 dark:border-sky-900/30 dark:bg-gray-800/80 dark:shadow-black/20">
         <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-sky-400 to-blue-500" />
 

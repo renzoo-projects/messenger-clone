@@ -257,19 +257,21 @@ export default function ConversationClient({
         summarizing={summaryLoading}
         typingUserIds={typingUserIds}
       />
-      <SummaryBanner
-        summary={summary}
-        messageCount={summaryMessageCount}
-        loading={summaryLoading}
-        error={summaryError}
-        onClose={() => {
-          setSummary(null)
-          setSummaryMessageCount(0)
-          setSummaryError(null)
-        }}
-        onRetry={handleSummarize}
-      />
-      <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
+      <div className="relative flex-1 min-h-0">
+        <SummaryBanner
+          summary={summary}
+          messageCount={summaryMessageCount}
+          loading={summaryLoading}
+          error={summaryError}
+          onClose={() => {
+            setSummary(null)
+            setSummaryMessageCount(0)
+            setSummaryError(null)
+          }}
+          onRetry={handleSummarize}
+        />
+        <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
+      </div>
       <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
     </div>
   )
