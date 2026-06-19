@@ -31,85 +31,13 @@ const dotSizes = {
 
 const sizePx = { sm: "28px", md: "40px", lg: "64px" } as const
 
-const groupContainer = {
-  sm: "h-7 w-7 rounded-md",
-  md: "h-10 w-10 rounded-lg",
-  lg: "h-16 w-16 rounded-xl",
-} as const
-
-function GroupAvatar({ users, size }: { users: AvatarUser[]; size: "sm" | "md" | "lg" }) {
-  const displayUsers = users.slice(0, 2)
-
-  function renderFace(user: AvatarUser | undefined, clipPath: string) {
-    if (!user) {
-      return (
-        <div
-          className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700"
-          style={{ clipPath }}
-        >
-          <HiUser className={iconSizes[size] + " text-gray-400 dark:text-gray-500"} />
-        </div>
-      )
-    }
-
-    if (user.image) {
-      return (
-        <div className="absolute inset-0" style={{ clipPath }}>
-          <Image
-            src={user.image}
-            alt={user.name || "Avatar"}
-            fill
-            sizes={sizePx[size]}
-            className="object-cover"
-          />
-        </div>
-      )
-    }
-
-    if (user.name) {
-      return (
-        <div
-          className="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-600"
-          style={{ clipPath }}
-        >
-          <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-            {user.name.charAt(0).toUpperCase()}
-          </span>
-        </div>
-      )
-    }
-
-    return (
-      <div
-        className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700"
-        style={{ clipPath }}
-      >
-        <HiUser className={iconSizes[size] + " text-gray-400 dark:text-gray-500"} />
-      </div>
-    )
-  }
-
-  return (
-    <div className={"relative inline-block " + groupContainer[size] + " overflow-hidden bg-gray-200 dark:bg-gray-700"}>
-      {renderFace(displayUsers[0], "polygon(0 0, 100% 0, 0 100%)")}
-      {renderFace(displayUsers[1], "polygon(100% 0, 100% 100%, 0 100%)")}
-    </div>
-  )
-}
-
 const Avatar = memo(function Avatar({
   user,
-  users,
   size = "md",
 }: {
   user?: AvatarUser | null
-  users?: AvatarUser[]
   size?: "sm" | "md" | "lg"
 }) {
-  if (users && users.length >= 2) {
-    return <GroupAvatar users={users} size={size} />
-  }
-
   const { members } = useActiveList()
   const isActive = user?.id ? members.includes(user.id) : false
 

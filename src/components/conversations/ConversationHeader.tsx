@@ -3,6 +3,7 @@
 import { useMemo, memo } from "react"
 import { useSession } from "next-auth/react"
 import Avatar from "@/components/ui/Avatar"
+import GroupAvatar from "@/components/ui/GroupAvatar"
 import useProfileDrawer from "@/hooks/useProfileDrawer"
 import useGroupDrawer from "@/hooks/useGroupDrawer"
 import useActiveList from "@/hooks/useActiveList"
@@ -78,7 +79,11 @@ const ConversationHeader = memo(function ConversationHeader({
           role="button"
           tabIndex={0}
         >
-          <Avatar user={conversation.isGroup ? undefined : otherUser} users={conversation.isGroup ? conversation.users : undefined} />
+          {conversation.isGroup ? (
+            <GroupAvatar users={conversation.users} />
+          ) : (
+            <Avatar user={otherUser} />
+          )}
         </div>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">

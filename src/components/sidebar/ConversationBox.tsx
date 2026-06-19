@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
 import Avatar from "@/components/ui/Avatar"
+import GroupAvatar from "@/components/ui/GroupAvatar"
 import { FullConversationType } from "@/types"
 import { format } from "date-fns"
 import { HiEllipsisHorizontal, HiOutlineEnvelope, HiOutlineEnvelopeOpen, HiTrash } from "react-icons/hi2"
@@ -232,7 +233,11 @@ const ConversationBox = memo(function ConversationBox({
           )}
           style={{ transition: swiped ? "none" : undefined }}
         >
-          <Avatar user={conversation.isGroup ? undefined : otherUser} users={conversation.isGroup ? conversation.users : undefined} />
+          {conversation.isGroup ? (
+            <GroupAvatar users={conversation.users} />
+          ) : (
+            <Avatar user={otherUser} />
+          )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p

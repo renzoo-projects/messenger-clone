@@ -72,6 +72,7 @@ body {
   --select-text: #111827;
   --select-chip-bg: #e5e7eb;
   --select-placeholder: #9ca3af;
+  --avatar-gap-bg: #ffffff;
 }
 
 .dark {
@@ -81,6 +82,7 @@ body {
   --select-text: #f3f4f6;
   --select-chip-bg: #4b5563;
   --select-placeholder: #6b7280;
+  --avatar-gap-bg: #030712;
 }
 
 button:focus-visible,
