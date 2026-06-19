@@ -74,6 +74,8 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
     if ((!text.trim() && !previewFile) || isLoading) return
 
     setIsLoading(true)
+    const messageText = text.trim()
+
     try {
       let imageUrl: string | undefined
 
@@ -87,9 +89,10 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
         imageUrl = data.url
       }
 
-      await onSend(text.trim(), imageUrl)
       setText("")
       clearPreview()
+
+      await onSend(messageText, imageUrl)
     } catch (error) {
       toast.error("Failed to send message")
     } finally {

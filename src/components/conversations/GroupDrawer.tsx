@@ -1,18 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import useGroupDrawer from "@/hooks/useGroupDrawer"
 import Avatar from "@/components/ui/Avatar"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
-import { HiPencil, HiCheck, HiXMark } from "react-icons/hi2"
+import { HiPencil, HiCheck, HiXMark, HiPlusCircle } from "react-icons/hi2"
+import { SafeUser } from "@/types"
 
 export default function GroupDrawer() {
   const { isOpen, onClose, conversation, updateConversation } = useGroupDrawer()
   const [editName, setEditName] = useState("")
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [availableUsers, setAvailableUsers] = useState<SafeUser[]>([])
+  const [availableLoading, setAvailableLoading] = useState(false)
+  const [addingMemberId, setAddingMemberId] = useState<string | null>(null)
 
   const startEditing = () => {
     setEditName(conversation?.name || "")
@@ -53,6 +58,50 @@ export default function GroupDrawer() {
       toast.error("Failed to rename group")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!showAddMember || !conversation) return
+    setAvailableLoading(true)
+    fetch("/api/users")
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load users")
+        return res.json()
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const memberIds = new Set(conversation.users.map((u) => u.id))
+          setAvailableUsers(data.filter((u: SafeUser) => !memberIds.has(u.id)))
+        }
+      })
+      .catch(() => toast.error("Failed to load users"))
+      .finally(() => setAvailableLoading(false))
+  }, [showAddMember, conversation])
+
+  const handleAddMember = async (userId: string) => {
+    if (!conversation) return
+    setAddingMemberId(userId)
+    try {
+      const res = await fetch(`/api/conversations/${conversation.id}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      })
+      if (!res.ok) throw new Error("Failed to add member")
+      const addedUser = availableUsers.find((u) => u.id === userId)
+      if (addedUser) {
+        updateConversation({
+          ...conversation,
+          users: [...conversation.users, addedUser],
+        })
+        setAvailableUsers((prev) => prev.filter((u) => u.id !== userId))
+      }
+      toast.success("Member added")
+    } catch {
+      toast.error("Failed to add member")
+    } finally {
+      setAddingMemberId(null)
     }
   }
 
@@ -176,6 +225,56 @@ export default function GroupDrawer() {
               </div>
             ))}
           </div>
+
+          <button
+            onClick={() => setShowAddMember(!showAddMember)}
+            className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
+          >
+            <HiPlusCircle className="h-4 w-4" />
+            Add people
+          </button>
+
+          {showAddMember && (
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+              {availableLoading ? (
+                <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
+                  Loading...
+                </div>
+              ) : availableUsers.length === 0 ? (
+                <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
+                  No more users to add
+                </div>
+              ) : (
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {availableUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar user={user} size="sm" />
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {user.name || user.email || "Unknown"}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleAddMember(user.id)}
+                        disabled={addingMemberId === user.id}
+                        className="flex items-center justify-center h-8 w-8 rounded-full text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition disabled:opacity-50"
+                        aria-label={`Add ${user.name || "user"}`}
+                      >
+                        {addingMemberId === user.id ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                        ) : (
+                          <HiPlusCircle className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Modal>
