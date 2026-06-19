@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/types"
 import { getPusherClient } from "@/lib/pusherClient"
+import usePusherConnection from "@/lib/pusherConnectionStore"
 
 export function useConversations(initialData?: FullConversationType[]) {
   const { data: session } = useSession()
@@ -70,6 +71,33 @@ export function useConversations(initialData?: FullConversationType[]) {
       channelRef.current = null
     }
   }, [userId])
+
+  const { status, previousStatus } = usePusherConnection()
+  const isReconnectedRef = useRef(false)
+
+  useEffect(() => {
+    if (previousStatus && previousStatus !== "connected" && status === "connected") {
+      isReconnectedRef.current = true
+    }
+  }, [status, previousStatus])
+
+  const refetchConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/conversations")
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) setConversations(data)
+      }
+    } catch {
+      // Silent — will retry on next reconnect
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isReconnectedRef.current) return
+    isReconnectedRef.current = false
+    refetchConversations()
+  }, [status, refetchConversations])
 
   return { conversations, isLoading }
 }

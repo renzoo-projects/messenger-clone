@@ -15,6 +15,7 @@ const GroupDrawer = dynamic(() => import("@/components/conversations/GroupDrawer
 const SummaryBanner = dynamic(() => import("@/components/conversations/SummaryBanner"))
 import useConversation from "@/hooks/useConversation"
 import { getPusherClient } from "@/lib/pusherClient"
+import usePusherConnection from "@/lib/pusherConnectionStore"
 import { hapticLight } from "@/lib/haptic"
 import { FullConversationType, FullMessageType } from "@/types"
 
@@ -148,6 +149,43 @@ export default function ConversationClient({
       channelRef.current = null
     }
   }, [conversationId, router])
+
+  const { status, previousStatus } = usePusherConnection()
+  const isReconnectedRef = useRef(false)
+
+  useEffect(() => {
+    if (previousStatus && previousStatus !== "connected" && status === "connected") {
+      isReconnectedRef.current = true
+    }
+  }, [status, previousStatus])
+
+  useEffect(() => {
+    if (!isReconnectedRef.current || !conversationId) return
+    isReconnectedRef.current = false
+
+    const refetch = async () => {
+      try {
+        const [convRes, msgRes] = await Promise.all([
+          fetch(`/api/conversations/${conversationId}`),
+          fetch(`/api/messages/${conversationId}?take=50`),
+        ])
+        if (convRes.ok) {
+          const conv = await convRes.json()
+          setConversation(conv)
+        }
+        if (msgRes.ok) {
+          const data = await msgRes.json()
+          if (data.messages?.length) {
+            setMessages(data.messages)
+            setNextCursor(data.nextCursor ?? null)
+          }
+        }
+      } catch {
+        // Silent — will retry on next reconnect
+      }
+    }
+    refetch()
+  }, [conversationId, status])
 
   const handleTypingStart = useCallback(() => {
     fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {})

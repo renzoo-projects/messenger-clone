@@ -53,11 +53,7 @@ export async function POST(request: Request) {
 
     const data = await res.json()
     const rawUrl: string = data.secure_url || data.url
-    const optimizedUrl = rawUrl.replace(
-      "/upload/",
-      "/upload/q_auto,f_auto,w_800/"
-    )
-    return NextResponse.json({ url: optimizedUrl })
+    return NextResponse.json({ url: rawUrl })
   } catch (error) {
     console.error("UPLOAD_POST", error)
     return NextResponse.json({ error: "Internal error" }, { status: 500 })

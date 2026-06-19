@@ -2,19 +2,25 @@
 
 import { useState, useEffect } from "react"
 import { getPusherClient } from "@/lib/pusherClient"
+import usePusherConnection from "@/lib/pusherConnectionStore"
 
 export default function PusherConnectionIndicator() {
   const [status, setStatus] = useState<"connected" | "connecting" | "disconnected">("connecting")
+  const storeStatus = usePusherConnection((s) => s.setStatus)
 
   useEffect(() => {
     const pusher = getPusherClient()
-    const update = () => setStatus(pusher.connection.state as typeof status)
+    const update = () => {
+      const s = pusher.connection.state as typeof status
+      setStatus(s)
+      storeStatus(s)
+    }
     update()
     pusher.connection.bind("state_change", update)
     return () => {
       pusher.connection.unbind("state_change", update)
     }
-  }, [])
+  }, [storeStatus])
 
   if (status === "connected") return null
 

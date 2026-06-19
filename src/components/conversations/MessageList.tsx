@@ -126,8 +126,12 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm bg-transparent">
-        No messages yet. Start the conversation!
+      <div className="flex-1 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 bg-transparent px-4">
+        <svg className="h-14 w-14 text-gray-200 dark:text-gray-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <p className="text-sm font-medium">No messages yet</p>
+        <p className="text-xs mt-1">Type a message below to get started</p>
       </div>
     )
   }

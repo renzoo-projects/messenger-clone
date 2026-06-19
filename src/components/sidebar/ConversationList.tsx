@@ -119,8 +119,18 @@ export default function ConversationList({
             ))}
           </div>
         ) : conversations.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-gray-500 dark:text-gray-400 text-sm">
-              No conversations yet
+          <div className="flex flex-col items-center justify-center h-40 text-gray-500 dark:text-gray-400 text-sm px-5">
+            <svg className="h-12 w-12 text-gray-200 dark:text-gray-700 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            <p className="mb-3">No conversations yet</p>
+            <button
+              onClick={() => setShowGroupModal(true)}
+              className="flex items-center gap-2 rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 transition-colors"
+            >
+              <HiPencilSquare className="h-4 w-4" />
+              Start a conversation
+            </button>
           </div>
         ) : (
           <div className="motion-safe:animate-fadeIn">
