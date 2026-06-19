@@ -1,4 +1,5 @@
 import { auth } from "@/auth"
+import { redirect } from "next/navigation"
 import prismadb from "@/lib/prismadb"
 import { transformConversation } from "@/lib/conversationTransformer"
 import Sidebar from "@/components/sidebar/Sidebar"
@@ -58,6 +59,9 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
+  if (!session?.user?.id) {
+    redirect("/")
+  }
   const initialConversations = session?.user?.id
     ? await getConversations(session.user.id)
     : []

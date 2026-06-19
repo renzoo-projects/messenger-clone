@@ -17,8 +17,7 @@ export default function LogoutModal() {
   const handleSignOut = async () => {
     setIsLoading(true)
     try {
-      await signOut({ redirect: false })
-      router.push("/")
+      await signOut({ redirect: true, callbackUrl: "/" })
     } catch {
       toast.error("Failed to sign out")
       setIsLoading(false)
