@@ -37,6 +37,7 @@ export default function ConversationClient({
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryMessageCount, setSummaryMessageCount] = useState(0)
+  const [summaryError, setSummaryError] = useState<string | null>(null)
   const [nextCursor, setNextCursor] = useState<string | null>(initialCursor ?? null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set())
@@ -155,21 +156,28 @@ export default function ConversationClient({
   const handleSummarize = useCallback(async () => {
     setSummaryLoading(true)
     setSummary(null)
+    setSummaryError(null)
     try {
       const res = await fetch(`/api/conversations/${conversationId}/summarize`, {
         method: "POST",
       })
       const data = await res.json()
       if (data.error) {
-        toast.error(data.error)
+        setSummaryError(data.error)
       } else {
         setSummary(data.summary)
         setSummaryMessageCount(data.messageCount)
       }
     } catch {
-      toast.error("Couldn't generate summary. Try again.")
+      setSummaryError("Couldn't generate summary. Try again.")
     } finally {
       setSummaryLoading(false)
+    }
+  }, [conversationId])
+
+  useEffect(() => {
+    if (initialConversation.unreadCount > 0) {
+      handleSummarize()
     }
   }, [conversationId])
 
@@ -246,16 +254,20 @@ export default function ConversationClient({
       <ConversationHeader
         conversation={conversation}
         onSummarize={handleSummarize}
+        summarizing={summaryLoading}
         typingUserIds={typingUserIds}
       />
       <SummaryBanner
         summary={summary}
         messageCount={summaryMessageCount}
         loading={summaryLoading}
+        error={summaryError}
         onClose={() => {
           setSummary(null)
           setSummaryMessageCount(0)
+          setSummaryError(null)
         }}
+        onRetry={handleSummarize}
       />
       <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
       <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />

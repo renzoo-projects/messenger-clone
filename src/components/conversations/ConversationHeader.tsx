@@ -12,12 +12,14 @@ import { HiInformationCircle, HiOutlineSparkles } from "react-icons/hi2"
 interface ConversationHeaderProps {
   conversation: FullConversationType
   onSummarize?: () => void
+  summarizing?: boolean
   typingUserIds?: Set<string>
 }
 
 export default function ConversationHeader({
   conversation,
   onSummarize,
+  summarizing,
   typingUserIds,
 }: ConversationHeaderProps) {
   const { data: session } = useSession()
@@ -89,10 +91,12 @@ export default function ConversationHeader({
         {onSummarize && (
           <button
             onClick={onSummarize}
-            className="flex items-center justify-center h-11 w-11 text-gray-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-150 active:scale-[0.97]"
-            aria-label="Summarize unread messages"
+            disabled={summarizing}
+            title="Summarize conversation"
+            className="flex items-center justify-center h-11 w-11 text-gray-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Summarize conversation"
           >
-            <HiOutlineSparkles className="h-5 w-5" />
+            <HiOutlineSparkles className={`h-5 w-5 ${summarizing ? "animate-spin" : ""}`} />
           </button>
         )}
         {conversation.isGroup && (
