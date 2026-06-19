@@ -213,12 +213,6 @@ export default function ConversationClient({
     }
   }, [conversationId])
 
-  useEffect(() => {
-    if (initialConversation.unreadCount > 0) {
-      handleSummarize()
-    }
-  }, [conversationId])
-
   const handleSendMessage = useCallback(async (body: string, image?: string) => {
     const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
