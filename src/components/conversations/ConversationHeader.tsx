@@ -78,7 +78,7 @@ const ConversationHeader = memo(function ConversationHeader({
           role="button"
           tabIndex={0}
         >
-          <Avatar user={conversation.isGroup ? null : otherUser} />
+          <Avatar user={conversation.isGroup ? undefined : otherUser} users={conversation.isGroup ? conversation.users : undefined} />
         </div>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">

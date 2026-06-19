@@ -232,7 +232,7 @@ const ConversationBox = memo(function ConversationBox({
           )}
           style={{ transition: swiped ? "none" : undefined }}
         >
-          <Avatar user={conversation.isGroup ? null : otherUser} />
+          <Avatar user={conversation.isGroup ? undefined : otherUser} users={conversation.isGroup ? conversation.users : undefined} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p
