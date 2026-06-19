@@ -19,7 +19,6 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
-  const sendingRef = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -72,9 +71,8 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if ((!text.trim() && !previewFile) || sendingRef.current) return
+    if (!text.trim() && !previewFile) return
 
-    sendingRef.current = true
     const messageText = text.trim()
 
     try {
@@ -96,8 +94,6 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
       await onSend(messageText, imageUrl)
     } catch (error) {
       toast.error("Failed to send message")
-    } finally {
-      sendingRef.current = false
     }
   }
 
