@@ -83,6 +83,12 @@ export async function POST(
       transformed
     )
 
+    await pusherServer.trigger(
+      `private-conversation-${conversationId}`,
+      "conversation:update",
+      transformed
+    )
+
     return NextResponse.json(transformed)
   } catch (error) {
     console.error("MEMBERS_POST", error)

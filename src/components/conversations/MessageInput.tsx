@@ -13,7 +13,6 @@ interface MessageInputProps {
 
 export default function MessageInput({ onSend, onEngage, onTypingStart }: MessageInputProps) {
   const [text, setText] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
   const [previewFile, setPreviewFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
@@ -57,8 +56,9 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || isLoading) return
+    if (!file) return
     e.target.value = ""
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewFile(file)
     setPreviewUrl(URL.createObjectURL(file))
   }
@@ -74,22 +74,23 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
     if (!text.trim() && !previewFile) return
 
     const messageText = text.trim()
+    const currentPreview = previewFile
+
+    setText("")
+    clearPreview()
 
     try {
       let imageUrl: string | undefined
 
-      if (previewFile) {
+      if (currentPreview) {
         const formData = new FormData()
-        formData.append("file", previewFile)
+        formData.append("file", currentPreview)
         const res = await fetch("/api/upload", { method: "POST", body: formData })
         if (!res.ok) throw new Error("Upload failed")
         const data = await res.json()
         if (!data.url) throw new Error("No URL returned")
         imageUrl = data.url
       }
-
-      setText("")
-      clearPreview()
 
       await onSend(messageText, imageUrl)
     } catch (error) {
@@ -130,13 +131,11 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           accept="image/*"
           className="hidden"
           onChange={handleFileSelect}
-          disabled={isLoading}
         />
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={isLoading}
-          className="flex items-center justify-center h-11 w-11 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
+          className="flex items-center justify-center h-11 w-11 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           aria-label="Upload photo"
         >
           <HiPhoto className="h-6 w-6" />

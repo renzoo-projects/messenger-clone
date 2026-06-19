@@ -36,8 +36,9 @@ export default function GroupDrawer() {
     }
 
     const trimmedName = editName.trim()
+    const currentConv = useGroupDrawer.getState().conversation || conversation
 
-    if (trimmedName === conversation.name) {
+    if (trimmedName === currentConv.name) {
       setIsEditing(false)
       setEditName("")
       return
@@ -45,12 +46,13 @@ export default function GroupDrawer() {
 
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/conversations/${conversation.id}`, {
+      const res = await fetch(`/api/conversations/${currentConv.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedName }),
       })
       if (!res.ok) throw new Error("Failed to rename")
+      updateConversation({ ...currentConv, name: trimmedName })
       toast.success("Group renamed")
       setIsEditing(false)
     } catch (error) {
@@ -106,15 +108,17 @@ export default function GroupDrawer() {
   }
 
   const handleRemoveMember = async (userId: string, userName: string) => {
-    if (!conversation) return
+    const currentConversation = useGroupDrawer.getState().conversation
+    if (!currentConversation) return
+    const prevConversation = currentConversation
     updateConversation({
-      ...conversation,
-      users: conversation.users.filter((u) => u.id !== userId),
+      ...currentConversation,
+      users: currentConversation.users.filter((u) => u.id !== userId),
     })
     setIsLoading(true)
     try {
       const res = await fetch(
-        `/api/conversations/${conversation.id}/members`,
+        `/api/conversations/${currentConversation.id}/members`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -124,7 +128,7 @@ export default function GroupDrawer() {
       if (!res.ok) throw new Error()
       toast.success(`${userName} removed`)
     } catch {
-      updateConversation(conversation)
+      updateConversation(prevConversation)
       toast.error("Failed to remove member")
     } finally {
       setIsLoading(false)

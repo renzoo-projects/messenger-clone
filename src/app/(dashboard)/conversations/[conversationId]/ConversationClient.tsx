@@ -182,7 +182,7 @@ export default function ConversationClient({
   }, [conversationId])
 
   const handleSendMessage = useCallback(async (body: string, image?: string) => {
-    const tempId = `temp-${Date.now()}`
+    const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
     const tempMessage: FullMessageType & { _status?: string } = {
       id: tempId,
