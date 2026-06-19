@@ -19,6 +19,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
+  const sendingRef = useRef(false)
 
   useEffect(() => {
     return () => {
@@ -71,9 +72,9 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if ((!text.trim() && !previewFile) || isLoading) return
+    if ((!text.trim() && !previewFile) || sendingRef.current) return
 
-    setIsLoading(true)
+    sendingRef.current = true
     const messageText = text.trim()
 
     try {
@@ -96,14 +97,14 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
     } catch (error) {
       toast.error("Failed to send message")
     } finally {
-      setIsLoading(false)
+      sendingRef.current = false
     }
   }
 
   return (
     <div
       ref={formRef}
-      className="sticky bottom-0 bg-transparent px-4 py-2 transition-[padding-bottom]"
+      className="sticky bottom-0 bg-transparent px-4 pt-2 transition-[padding-bottom]"
       style={keyboardOffset > 0 ? { paddingBottom: `${keyboardOffset}px` } : undefined}
     >
       {previewUrl && (
@@ -157,15 +158,11 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
         />
         <button
           type="submit"
-          disabled={(!text.trim() && !previewFile) || isLoading}
+          disabled={!text.trim() && !previewFile}
           className="flex items-center justify-center h-11 w-11 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
           aria-label="Send message"
         >
-          {isLoading ? (
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-          ) : (
-            <HiPaperAirplane className="h-5 w-5" />
-          )}
+          <HiPaperAirplane className="h-5 w-5" />
         </button>
       </form>
     </div>

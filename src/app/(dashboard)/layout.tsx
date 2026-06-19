@@ -68,7 +68,7 @@ export default async function DashboardLayout({
       <SettingsModal />
       <Sidebar />
       <ConversationList initialConversations={initialConversations} />
-      <main id="main-content" className="lg:ml-20 lg:pl-80 h-full pb-20 lg:pb-0 [padding-bottom:max(5rem,env(safe-area-inset-bottom))] lg:[padding-bottom:0] bg-[#F0F2F5] dark:bg-gray-900">
+      <main id="main-content" className="lg:ml-20 lg:pl-80 h-full pb-16 lg:pb-0 [padding-bottom:max(4rem,env(safe-area-inset-bottom))] lg:[padding-bottom:0] bg-[#F0F2F5] dark:bg-gray-900">
         {children}
       </main>
     </div>
