@@ -152,7 +152,6 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           onChange={handleTextChange}
           onFocus={onEngage}
           placeholder="Type a message"
-          disabled={isLoading}
           aria-label="Message text"
           className="flex-1 rounded-full border-0 bg-gray-100 dark:bg-gray-800 px-4 py-2 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
         />
