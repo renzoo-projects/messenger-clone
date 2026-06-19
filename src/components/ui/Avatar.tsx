@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import Image from "next/image"
 import { HiUser } from "react-icons/hi2"
 import useActiveList from "@/hooks/useActiveList"
@@ -28,7 +29,9 @@ const dotSizes = {
   lg: "h-4 w-4",
 } as const
 
-export default function Avatar({
+const sizePx = { sm: "24px", md: "36px", lg: "64px" } as const
+
+const Avatar = memo(function Avatar({
   user,
   size = "md",
 }: {
@@ -49,7 +52,7 @@ export default function Avatar({
             src={image}
             alt={name || "Avatar"}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes={sizePx[size]}
             className="object-cover"
           />
         </div>
@@ -76,4 +79,6 @@ export default function Avatar({
       )}
     </div>
   )
-}
+})
+
+export default Avatar

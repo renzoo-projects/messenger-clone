@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, memo } from "react"
 import { useSession } from "next-auth/react"
 import Avatar from "@/components/ui/Avatar"
 import useProfileDrawer from "@/hooks/useProfileDrawer"
@@ -16,7 +16,7 @@ interface ConversationHeaderProps {
   typingUserIds?: Set<string>
 }
 
-export default function ConversationHeader({
+const ConversationHeader = memo(function ConversationHeader({
   conversation,
   onSummarize,
   summarizing,
@@ -111,4 +111,6 @@ export default function ConversationHeader({
       </div>
     </div>
   )
-}
+})
+
+export default ConversationHeader

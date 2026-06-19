@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, useMemo, useCallback } from "react"
+import { useRef, useEffect, useMemo, useCallback, memo } from "react"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import clsx from "clsx"
@@ -20,7 +20,37 @@ interface MessageListProps {
   conversation?: { users: { id: string; name: string | null; image: string | null }[] }
 }
 
-export default function MessageList({ messages, isGroup, loadMore, hasMore, loadingMore, typingUserIds, conversation }: MessageListProps) {
+const TypingIndicator = memo(function TypingIndicator({
+  typingUsers,
+  isGroup,
+}: {
+  typingUsers: { id: string; name: string | null; image: string | null }[]
+  isGroup?: boolean
+}) {
+  if (typingUsers.length === 0) return null
+
+  return (
+    <div className="flex gap-2 mb-1 motion-safe:animate-fadeIn">
+      <div className="flex-shrink-0 mt-1 self-end">
+        <Avatar user={typingUsers[0]} size="sm" />
+      </div>
+      <div className="flex flex-col items-start">
+        {isGroup && (
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1 mb-0.5">
+            {typingUsers[0]?.name || "Someone"}
+          </span>
+        )}
+        <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-gray-700 px-4 py-3 shadow-sm rounded-bl-sm">
+          <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" />
+          <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.16s" }} />
+          <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.32s" }} />
+        </div>
+      </div>
+    </div>
+  )
+})
+
+const MessageList = memo(function MessageList({ messages, isGroup, loadMore, hasMore, loadingMore, typingUserIds, conversation }: MessageListProps) {
   const { data: session } = useSession()
   const { members } = useActiveList()
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -221,25 +251,9 @@ export default function MessageList({ messages, isGroup, loadMore, hasMore, load
         )
       })}
       <div ref={bottomRef} />
-      {typingUsers.length > 0 && (
-        <div className="flex gap-2 mb-1 motion-safe:animate-fadeIn">
-          <div className="flex-shrink-0 mt-1 self-end">
-            <Avatar user={typingUsers[0]} size="sm" />
-          </div>
-          <div className="flex flex-col items-start">
-            {isGroup && (
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 ml-1 mb-0.5">
-                {typingUsers[0]?.name || "Someone"}
-              </span>
-            )}
-            <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-gray-700 px-4 py-3 shadow-sm rounded-bl-sm">
-              <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" />
-              <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.16s" }} />
-              <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.32s" }} />
-            </div>
-          </div>
-        </div>
-      )}
+      <TypingIndicator typingUsers={typingUsers} isGroup={isGroup} />
     </div>
   )
-}
+})
+
+export default MessageList

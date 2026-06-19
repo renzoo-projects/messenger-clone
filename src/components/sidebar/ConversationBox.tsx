@@ -18,6 +18,16 @@ interface ConversationBoxProps {
 
 const SWIPE_THRESHOLD = 80
 
+function conversationBoxAreEqual(prev: ConversationBoxProps, next: ConversationBoxProps) {
+  const prevLastMsg = prev.conversation.messages?.[prev.conversation.messages.length - 1]
+  const nextLastMsg = next.conversation.messages?.[next.conversation.messages.length - 1]
+  return prev.conversation.id === next.conversation.id &&
+    prev.conversation.unreadCount === next.conversation.unreadCount &&
+    prev.conversation.updatedAt === next.conversation.updatedAt &&
+    prev.selected === next.selected &&
+    (prevLastMsg?.id === nextLastMsg?.id || (!prevLastMsg && !nextLastMsg))
+}
+
 const ConversationBox = memo(function ConversationBox({
   conversation,
   selected,
@@ -309,8 +319,8 @@ const ConversationBox = memo(function ConversationBox({
           )}
         </div>
       )}
-    </div>
-  )
-})
-
-export default ConversationBox
+      </div>
+    )
+  }, conversationBoxAreEqual)
+  
+  export default ConversationBox

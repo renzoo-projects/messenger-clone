@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import { HiXMark, HiOutlineSparkles, HiArrowPath } from "react-icons/hi2"
 import { hapticLight } from "@/lib/haptic"
 
@@ -28,14 +29,14 @@ function LoadingSkeleton() {
   )
 }
 
-const SummaryBanner: React.FC<SummaryBannerProps> = ({
+const SummaryBanner = memo(function SummaryBanner({
   summary,
   messageCount,
   loading,
   error,
   onClose,
   onRetry,
-}) => {
+}: SummaryBannerProps) {
   const handleClose = () => {
     hapticLight()
     onClose()
@@ -117,6 +118,6 @@ const SummaryBanner: React.FC<SummaryBannerProps> = ({
       </div>
     </div>
   )
-}
+})
 
 export default SummaryBanner
