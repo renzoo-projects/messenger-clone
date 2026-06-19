@@ -24,14 +24,14 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:w-20 lg:flex lg:flex-col lg:overflow-y-auto lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 lg:pb-4">
+        <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:w-20 lg:flex lg:flex-col lg:overflow-y-auto lg:border-r lg:border-gray-100 dark:lg:border-gray-800 lg:bg-white dark:lg:bg-gray-950 lg:pb-4">
         <div className="flex flex-col items-center gap-y-2 mt-4">
           <div className="group relative">
             <Link
               href="/conversations"
               className={`flex items-center justify-center h-12 w-12 rounded-full transition ${
                 isConversationPage
-                  ? "bg-sky-500 text-white"
+                  ? "bg-blue-500 text-white"
                   : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
@@ -46,7 +46,7 @@ export default function Sidebar() {
               href="/users"
               className={`flex items-center justify-center h-12 w-12 rounded-full transition ${
                 isUsersPage
-                  ? "bg-sky-500 text-white"
+                  ? "bg-blue-500 text-white"
                   : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >

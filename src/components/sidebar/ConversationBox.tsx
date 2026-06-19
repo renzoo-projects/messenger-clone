@@ -227,8 +227,8 @@ const ConversationBox = memo(function ConversationBox({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           className={clsx(
-            "w-full flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all active:scale-[0.98] touch-pan-y",
-            selected && "bg-gray-100 dark:bg-gray-800 shadow-sm border-l-4 border-sky-500"
+            "w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.98] touch-pan-y",
+            selected && "bg-blue-50 dark:bg-blue-950/20"
           )}
           style={{ transition: swiped ? "none" : undefined }}
         >
@@ -252,7 +252,7 @@ const ConversationBox = memo(function ConversationBox({
                   </p>
                 )}
                 {unreadCount > 0 && (
-                  <span className="bg-sky-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
+                  <span className="bg-blue-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}

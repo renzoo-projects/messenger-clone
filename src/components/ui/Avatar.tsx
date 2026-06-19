@@ -12,24 +12,24 @@ interface AvatarUser {
 }
 
 const sizeClasses = {
-  sm: "h-6 w-6",
-  md: "h-9 w-9",
+  sm: "h-7 w-7",
+  md: "h-10 w-10",
   lg: "h-16 w-16",
 } as const
 
 const iconSizes = {
-  sm: "h-3 w-3",
+  sm: "h-3.5 w-3.5",
   md: "h-5 w-5",
   lg: "h-8 w-8",
 } as const
 
 const dotSizes = {
-  sm: "h-2 w-2",
+  sm: "h-2.5 w-2.5",
   md: "h-3 w-3",
   lg: "h-4 w-4",
 } as const
 
-const sizePx = { sm: "24px", md: "36px", lg: "64px" } as const
+const sizePx = { sm: "28px", md: "40px", lg: "64px" } as const
 
 const Avatar = memo(function Avatar({
   user,
@@ -47,7 +47,7 @@ const Avatar = memo(function Avatar({
   if (image) {
     return (
       <div className="relative inline-block transition-transform duration-150 hover:scale-105">
-        <div className={`relative ${sizeClasses[size]} rounded-full overflow-hidden`}>
+        <div className={"relative " + sizeClasses[size] + " rounded-full overflow-hidden"}>
           <Image
             src={image}
             alt={name || "Avatar"}
@@ -58,7 +58,7 @@ const Avatar = memo(function Avatar({
         </div>
         {isActive && (
           <span
-            className={`absolute bottom-0 right-0 ${dotSizes[size]} rounded-full bg-green-500 ring-2 ring-white`}
+            className={"absolute bottom-0 right-0 " + dotSizes[size] + " rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-950"}
           />
         )}
       </div>
@@ -68,13 +68,13 @@ const Avatar = memo(function Avatar({
   return (
     <div className="relative inline-block transition-transform duration-150 hover:scale-105">
       <div
-        className={`${sizeClasses[size]} rounded-full bg-gray-200 flex items-center justify-center`}
+        className={sizeClasses[size] + " rounded-full bg-gray-200 flex items-center justify-center"}
       >
-        <HiUser className={`${iconSizes[size]} text-gray-500`} />
+        <HiUser className={iconSizes[size] + " text-gray-500"} />
       </div>
       {isActive && (
         <span
-          className={`absolute bottom-0 right-0 ${dotSizes[size]} rounded-full bg-green-500 ring-2 ring-white`}
+          className={"absolute bottom-0 right-0 " + dotSizes[size] + " rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-950"}
         />
       )}
     </div>

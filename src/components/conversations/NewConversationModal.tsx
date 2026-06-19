@@ -109,7 +109,7 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
               onChange={(e) => setGroupName(e.target.value)}
               placeholder="Enter group name..."
               disabled={isLoading}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             />
           </div>
         )}
@@ -142,16 +142,16 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
                   ...base,
                   backgroundColor: "var(--select-bg, #fff)",
                   borderColor: state.isFocused
-                    ? "rgb(14, 165, 233)"
+                    ? "rgb(59, 130, 246)"
                     : "var(--select-border, #d1d5db)",
                   borderWidth: "1px",
                   boxShadow: state.isFocused
-                    ? "0 0 0 3px rgba(14, 165, 233, 0.1)"
+                    ? "0 0 0 3px rgba(59, 130, 246, 0.1)"
                     : "none",
                   minHeight: "40px",
                   transition: "all 0.2s",
                   ":hover": {
-                    borderColor: "rgb(14, 165, 233)",
+                    borderColor: "rgb(59, 130, 246)",
                   },
                 }),
                 menu: (base) => ({
@@ -170,7 +170,7 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
                 option: (base, state) => ({
                   ...base,
                   backgroundColor: state.isSelected
-                    ? "rgb(14, 165, 233)"
+                    ? "rgb(59, 130, 246)"
                     : state.isFocused
                       ? "var(--select-hover, #f3f4f6)"
                       : "var(--select-bg, #fff)",
@@ -179,7 +179,7 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
                   padding: "8px 12px",
                   transition: "background-color 0.15s",
                   ":active": {
-                    backgroundColor: "rgb(14, 165, 233)",
+                    backgroundColor: "rgb(59, 130, 246)",
                   },
                 }),
                 multiValue: (base) => ({
@@ -226,18 +226,18 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
                 dropdownIndicator: (base, state) => ({
                   ...base,
                   color: state.isFocused
-                    ? "rgb(14, 165, 233)"
+                    ? "rgb(59, 130, 246)"
                     : "var(--select-placeholder, #9ca3af)",
                   transition: "color 0.2s",
                   ":hover": {
-                    color: "rgb(14, 165, 233)",
+                    color: "rgb(59, 130, 246)",
                   },
                 }),
                 clearIndicator: (base) => ({
                   ...base,
                   color: "var(--select-placeholder, #9ca3af)",
                   ":hover": {
-                    color: "rgb(14, 165, 233)",
+                    color: "rgb(59, 130, 246)",
                   },
                 }),
               }}
@@ -251,7 +251,7 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
               type="button"
               onClick={() => setGroupMode(true)}
               disabled={isLoading}
-              className="flex items-center gap-2 text-sm text-sky-600 hover:text-sky-500 font-medium transition-colors"
+              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-500 font-medium transition-colors"
             >
               <HiUsers className="h-4 w-4" />
               Create group

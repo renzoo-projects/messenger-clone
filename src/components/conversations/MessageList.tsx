@@ -40,7 +40,7 @@ const TypingIndicator = memo(function TypingIndicator({
             {typingUsers[0]?.name || "Someone"}
           </span>
         )}
-        <div className="flex items-center gap-1 rounded-2xl bg-white dark:bg-gray-700 px-4 py-3 shadow-sm rounded-bl-sm">
+        <div className="flex items-center gap-1 rounded-[18px] bg-white dark:bg-gray-800 px-4 py-3 shadow-sm rounded-bl-sm">
           <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" />
           <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.16s" }} />
           <span className="h-2 w-2 rounded-full bg-gray-400 dark:bg-gray-400 animate-typing-dot" style={{ animationDelay: "0.32s" }} />
@@ -126,7 +126,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-800">
+      <div className="flex-1 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm bg-transparent">
         No messages yet. Start the conversation!
       </div>
     )
@@ -135,7 +135,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   return (
       <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-800 px-4 py-6 space-y-4 min-h-0"
+          className="flex-1 overflow-y-auto bg-transparent px-4 py-6 space-y-4 min-h-0"
           role="log"
           aria-live="polite"
           aria-label="Message history"
@@ -143,7 +143,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
       <div ref={topRef} />
       {loadingMore && (
         <div className="flex justify-center py-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
         </div>
       )}
       {groupedMessages.map((group) => {
@@ -151,7 +151,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
         return (
           <div key={group.date}>
             <div className="flex justify-center mb-4">
-              <span className="px-3 py-1 rounded-full bg-gray-200 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm">
+              <span className="px-3 py-1 rounded-full bg-gray-200/80 dark:bg-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 shadow-sm">
                 {formatDateHeader(groupDate)}
               </span>
             </div>
@@ -204,10 +204,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                         {message.body && (
                           <div
                             className={clsx(
-                              "rounded-2xl px-4 py-2 text-sm mt-1",
+                              "rounded-[22px] px-4 py-2 text-sm mt-1",
                               isOwn
-                                ? "bg-sky-500 text-white rounded-br-sm"
-                                : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
+                                ? "bg-blue-500 text-white rounded-br-sm"
+                                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
                             )}
                           >
                             {message.body}
@@ -218,10 +218,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                     {!message.image && message.body && (
                       <div
                         className={clsx(
-                          "rounded-2xl px-4 py-2 text-sm",
+                          "rounded-[22px] px-4 py-2 text-sm",
                           isOwn
-                            ? "bg-sky-500 text-white rounded-br-sm"
-                            : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
+                            ? "bg-blue-500 text-white rounded-br-sm"
+                            : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
                         )}
                       >
                         {message.body}
@@ -235,7 +235,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">Sending...</span>
                       )}
                       {isOwn && !(message as any)._status && seenText && (
-                        <span className="text-[10px] text-sky-500 font-medium" title={seenText}>
+                          <span className="text-[10px] text-blue-500 font-medium" title={seenText}>
                           ✓✓
                         </span>
                       )}

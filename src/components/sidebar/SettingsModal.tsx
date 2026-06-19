@@ -100,7 +100,7 @@ export default function SettingsModal() {
                 </div>
               )}
             </div>
-          <label className="flex items-center justify-center h-11 w-11 cursor-pointer text-sky-600 hover:text-sky-500 transition-colors duration-150" aria-label="Change avatar">
+          <label className="flex items-center justify-center h-11 w-11 cursor-pointer text-blue-600 hover:text-blue-500 transition-colors duration-150" aria-label="Change avatar">
             <HiCamera className="h-5 w-5" />
             <input
               type="file"
@@ -120,7 +120,7 @@ export default function SettingsModal() {
               id="settings-name"
               {...register("name", { required: true })}
               disabled={isLoading}
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 disabled:opacity-50 transition-colors"
+              className="w-full rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 transition-colors"
             />
             {errors.name && (
               <p className="text-xs text-red-500 mt-1">Name is required</p>
@@ -140,7 +140,7 @@ export default function SettingsModal() {
                   disabled={isLoading}
                   className={`flex-1 px-3 py-3 rounded-lg text-sm font-medium transition-colors ${
                     fontSize === value
-                      ? "bg-sky-500 text-white shadow-sm"
+                      ? "bg-blue-500 text-white shadow-sm"
                       : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
                   }`}
                 >

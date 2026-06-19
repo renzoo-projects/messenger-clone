@@ -105,7 +105,7 @@ export default function AuthForm() {
                   {...register("name", { required: !isLogin })}
                   autoFocus={!isLogin}
                   aria-describedby={errors.name ? "name-error" : undefined}
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 />
                 {errors.name && (
                   <p id="name-error" className="text-xs text-red-500 mt-1">Name is required</p>
@@ -126,7 +126,7 @@ export default function AuthForm() {
                   {...register("email", { required: true })}
                   autoFocus={isLogin}
                   aria-describedby={errors.email ? "email-error" : undefined}
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 />
                 {errors.email && (
                   <p id="email-error" className="text-xs text-red-500 mt-1">Email is required</p>
@@ -145,7 +145,7 @@ export default function AuthForm() {
                   disabled={isLoading}
                   {...register("password", { required: true, minLength: 6 })}
                   aria-describedby={errors.password ? "password-error" : undefined}
-                  className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 disabled:opacity-50"
+                  className="mt-1 block w-full rounded-xl border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <div id="password-error">
                   {errors.password?.type === "required" && (
@@ -159,7 +159,7 @@ export default function AuthForm() {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full justify-center rounded-md bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-600 active:bg-sky-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.97] disabled:active:scale-100"
+              className="flex w-full justify-center rounded-xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-600 active:bg-blue-700 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.97] disabled:active:scale-100"
             >
               {isLogin ? "Sign in" : "Register"}
             </button>
@@ -181,7 +181,7 @@ export default function AuthForm() {
               <button
                 onClick={() => socialLogin("google")}
                 disabled={isLoading}
-                className="flex w-full items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-50 active:scale-[0.97]"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 active:scale-[0.97]"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -198,7 +198,7 @@ export default function AuthForm() {
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-sky-600 hover:text-sky-500 active:text-sky-700 transition-colors duration-150"
+              className="font-medium text-blue-600 hover:text-blue-500 active:text-blue-700 transition-colors duration-150"
             >
               {isLogin ? "Create one" : "Sign in"}
             </button>

@@ -238,7 +238,7 @@ export default function ConversationClient({
           </p>
           <Link
             href="/conversations"
-            className="mt-4 inline-block text-sm text-sky-600 hover:text-sky-500 font-medium"
+            className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-500 font-medium"
           >
             Back to conversations
           </Link>

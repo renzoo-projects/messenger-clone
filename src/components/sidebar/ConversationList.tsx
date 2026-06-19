@@ -68,7 +68,7 @@ export default function ConversationList({
   }
 
   return (
-    <div className={`${isOnConversationsPage ? "fixed inset-0 z-30 flex flex-col" : "hidden"} lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950`}>
+    <div className={`${isOnConversationsPage ? "fixed inset-0 z-30 flex flex-col" : "hidden"} lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-100 dark:lg:border-gray-800 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950`}>
       <NewConversationModal
         isOpen={showGroupModal}
         onClose={() => setShowGroupModal(false)}
@@ -92,7 +92,7 @@ export default function ConversationList({
       >
         {refreshing && (
           <div className="flex justify-center py-3">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
           </div>
         )}
         {pullDistance > 0 && (

@@ -54,7 +54,7 @@ const ConversationHeader = memo(function ConversationHeader({
   }, [conversation, otherUser, members, typingUserIds])
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+    <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200/70 dark:border-gray-800 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg">
       <div className="flex items-center gap-3">
         <div
           className="cursor-pointer"
@@ -93,7 +93,7 @@ const ConversationHeader = memo(function ConversationHeader({
             onClick={onSummarize}
             disabled={summarizing}
             title="Summarize conversation"
-            className="flex items-center justify-center h-11 w-11 text-gray-500 hover:text-sky-600 dark:hover:text-sky-400 transition-colors duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center justify-center h-11 w-11 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Summarize conversation"
           >
             <HiOutlineSparkles className={`h-5 w-5 ${summarizing ? "animate-spin" : ""}`} />

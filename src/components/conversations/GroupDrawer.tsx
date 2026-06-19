@@ -86,7 +86,7 @@ export default function GroupDrawer() {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Group Info</h2>
         <button
           onClick={onClose}
@@ -105,7 +105,7 @@ export default function GroupDrawer() {
             <input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="flex-1 rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
             <Button

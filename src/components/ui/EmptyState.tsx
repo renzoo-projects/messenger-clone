@@ -7,9 +7,9 @@ interface EmptyStateProps {
 
 export default function EmptyState({ title, subtitle }: EmptyStateProps) {
   return (
-    <div className="px-4 py-10 sm:px-6 lg:px-8 h-full flex justify-center items-center bg-gray-50 dark:bg-gray-800">
+    <div className="px-4 py-10 sm:px-6 lg:px-8 h-full flex justify-center items-center bg-transparent">
       <div className="text-center items-center flex flex-col">
-        <HiChatBubbleLeftRight className="mx-auto h-16 w-16 text-gray-300 dark:text-gray-600 mb-2" />
+        <HiChatBubbleLeftRight className="mx-auto h-20 w-20 text-gray-200 dark:text-gray-700 mb-4" />
         <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
           {title || "Select a conversation or start a new one"}
         </h3>

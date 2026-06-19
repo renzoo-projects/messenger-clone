@@ -100,7 +100,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
   return (
     <div
       ref={formRef}
-      className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 transition-[padding-bottom]"
+      className="sticky bottom-0 bg-transparent px-4 py-2 transition-[padding-bottom]"
       style={keyboardOffset > 0 ? { paddingBottom: `${keyboardOffset}px` } : undefined}
     >
       {previewUrl && (
@@ -123,7 +123,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           </button>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-2xl px-3 py-2 shadow-elevated dark:shadow-elevated-dark border border-gray-100 dark:border-gray-800">
         <input
           ref={fileInputRef}
           type="file"
@@ -151,12 +151,12 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           placeholder="Type a message"
           disabled={isLoading}
           aria-label="Message text"
-          className="flex-1 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-4 py-2 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 transition-colors"
+          className="flex-1 rounded-full border-0 bg-gray-100 dark:bg-gray-800 px-4 py-2 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
         />
         <button
           type="submit"
           disabled={(!text.trim() && !previewFile) || isLoading}
-          className="flex items-center justify-center h-11 w-11 rounded-full bg-sky-500 text-white hover:bg-sky-600 transition disabled:opacity-50"
+          className="flex items-center justify-center h-11 w-11 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
           aria-label="Send message"
         >
           {isLoading ? (

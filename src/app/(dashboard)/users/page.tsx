@@ -86,7 +86,7 @@ export default function UsersPage() {
   if (isLoading) {
     return (
       <div className="h-full flex lg:block">
-        <div className="lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950 h-full">
+        <div className="lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-100 dark:lg:border-gray-800 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950 h-full">
           <div className="px-5 py-4 border-b">
             <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded" />
           </div>
@@ -108,7 +108,7 @@ export default function UsersPage() {
 
   return (
     <div className="h-full flex flex-col lg:block">
-      <div className="flex-1 overflow-y-auto lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-200 dark:lg:border-gray-700 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950">
+      <div className="flex-1 overflow-y-auto lg:fixed lg:inset-y-0 lg:left-20 lg:z-30 lg:w-80 lg:flex lg:flex-col lg:border-r lg:border-gray-100 dark:lg:border-gray-800 lg:bg-white dark:lg:bg-gray-950 bg-white dark:bg-gray-950">
         <div className="px-5 py-4 border-b">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">People</h2>
         </div>
@@ -123,7 +123,7 @@ export default function UsersPage() {
                   startConversation(user.id)
                 }
               }}
-              className="flex items-center gap-3 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all active:scale-[0.98] motion-safe:animate-slideUp"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.98] motion-safe:animate-slideUp"
               role="button"
               tabIndex={0}
               style={{ animationDelay: `${Math.min(index * 40, 200)}ms` }}
@@ -136,7 +136,7 @@ export default function UsersPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
               </div>
               {creating === user.id && (
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-sky-500" />
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500" />
               )}
             </div>
           ))}
@@ -148,7 +148,7 @@ export default function UsersPage() {
         </div>
       </div>
       <div className="hidden lg:block h-full">
-        <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+          <div className="h-full flex items-center justify-center bg-transparent">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Select a person to chat with

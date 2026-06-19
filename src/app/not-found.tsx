@@ -12,7 +12,7 @@ export default function NotFound() {
         </p>
         <Link
           href="/conversations"
-          className="mt-4 inline-block rounded-md bg-sky-500 px-4 py-2 text-sm text-white hover:bg-sky-600 transition"
+          className="mt-4 inline-block rounded-xl bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 transition"
         >
           Go home
         </Link>

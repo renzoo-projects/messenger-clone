@@ -29,15 +29,15 @@ export default function MobileFooter() {
   return (
     <>
       {/* Mobile Footer */}
-      <div className="fixed bottom-0 left-0 z-40 w-full bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+      <div className="fixed bottom-0 left-0 z-40 w-full bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 lg:hidden">
         <div className="flex items-center justify-between px-4 h-16">
           {/* Primary Navigation */}
           <div className="flex items-center gap-4">
             <Link
               href="/conversations"
-              className={`flex flex-col items-center justify-center rounded-lg transition focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 ${
+              className={`flex flex-col items-center justify-center rounded-lg transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 ${
                  isConversations
-                   ? "text-sky-500"
+                   ? "text-blue-500"
                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                }`}
                aria-current={isConversations ? "page" : undefined}
@@ -47,9 +47,9 @@ export default function MobileFooter() {
             </Link>
             <Link
               href="/users"
-              className={`flex flex-col items-center justify-center rounded-lg transition focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 ${
+              className={`flex flex-col items-center justify-center rounded-lg transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950 ${
                  isUsers
-                   ? "text-sky-500"
+                   ? "text-blue-500"
                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                }`}
                aria-current={isUsers ? "page" : undefined}
@@ -63,7 +63,7 @@ export default function MobileFooter() {
           <div className="flex items-center gap-1">
             <button
               onClick={toggle}
-className="flex items-center justify-center h-11 w-11 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+className="flex items-center justify-center h-11 w-11 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
                aria-label={
                  theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
               }
@@ -80,7 +80,7 @@ className="flex items-center justify-center h-11 w-11 rounded-lg text-gray-500 d
             <div className="relative">
               <button
                 onClick={() => setShowMenu(!showMenu)}
-className="flex items-center justify-center h-11 w-11 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
+className="flex items-center justify-center h-11 w-11 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
                aria-label="More options"
                 aria-expanded={showMenu}
                 aria-haspopup="menu"

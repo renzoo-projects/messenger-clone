@@ -19,16 +19,16 @@ export default function Button({
   className,
   ...props
 }: ButtonProps) {
-  const baseStyles = "font-medium rounded-lg transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 disabled:opacity-50 disabled:active:scale-100"
+  const baseStyles = "font-medium rounded-xl transition active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900 disabled:opacity-50 disabled:active:scale-100"
 
   const variantStyles = {
     primary:
-      "bg-sky-500 text-white hover:bg-sky-600 active:bg-sky-700 dark:hover:bg-sky-600",
+      "bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 dark:hover:bg-blue-600",
     secondary:
-      "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600",
+      "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700",
     destructive: "bg-red-500 text-white hover:bg-red-600 active:bg-red-700 dark:hover:bg-red-600",
-    ghost: "text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-900/20",
-    text: "text-sky-600 dark:text-sky-400 hover:text-sky-500 dark:hover:text-sky-300",
+    ghost: "text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20",
+    text: "text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300",
   }
 
   const sizeStyles = {

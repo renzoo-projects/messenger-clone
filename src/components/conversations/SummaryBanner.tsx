@@ -15,10 +15,10 @@ interface SummaryBannerProps {
 
 function LoadingSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-lg shadow-sky-100/30 dark:border-sky-900/30 dark:bg-gray-800/80 dark:shadow-black/20">
-      <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-sky-400 to-blue-500" />
-      <div className="p-5 pt-6">
-        <div className="mb-3 inline-flex h-7 w-28 animate-pulse rounded-full bg-sky-100 dark:bg-sky-900/50" />
+    <div className="overflow-hidden rounded-2xl bg-white shadow-elevated dark:bg-gray-800/80 dark:shadow-elevated-dark">
+      <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
+      <div className="p-5 pt-4">
+        <div className="mb-3 inline-flex h-7 w-28 animate-pulse rounded-full bg-blue-100 dark:bg-blue-900/50" />
         <div className="space-y-2.5">
           <div className="h-3 w-full animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
           <div className="h-3 w-3/4 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
@@ -53,12 +53,12 @@ const SummaryBanner = memo(function SummaryBanner({
   if (error) {
     return (
       <div className="absolute left-3 right-3 top-3 z-10 animate-slideDown">
-        <div className="group relative overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 shadow-lg shadow-amber-100/30 dark:border-amber-900/30 dark:bg-amber-950/20 dark:shadow-black/20">
-          <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-amber-400 to-orange-500" />
+        <div className="group relative overflow-hidden rounded-2xl bg-amber-50 shadow-elevated dark:bg-amber-950/20 dark:shadow-elevated-dark">
+          <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-500" />
           <div className="p-5 pt-6">
             <button
               onClick={handleClose}
-              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-amber-400 opacity-0 transition-opacity hover:bg-amber-100 hover:text-amber-600 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-amber-500 group-hover:opacity-100 dark:hover:bg-amber-900/50 dark:hover:text-amber-300"
+              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-amber-400 opacity-0 transition-opacity hover:bg-amber-100 hover:text-amber-600 focus-visible:opacity-100 group-hover:opacity-100 dark:hover:bg-amber-900/50 dark:hover:text-amber-300"
               aria-label="Dismiss"
             >
               <HiXMark className="h-4 w-4" />
@@ -89,20 +89,20 @@ const SummaryBanner = memo(function SummaryBanner({
 
   return (
     <div className="absolute left-3 right-3 top-3 z-10 animate-slideDown">
-      <div className="group relative overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-lg shadow-sky-100/30 dark:border-sky-900/30 dark:bg-gray-800/80 dark:shadow-black/20">
-        <div className="absolute top-0 left-4 right-4 h-1 rounded-b-full bg-gradient-to-r from-sky-400 to-blue-500" />
+      <div className="group relative overflow-hidden rounded-2xl bg-white shadow-elevated dark:bg-gray-800/80 dark:shadow-elevated-dark">
+        <div className="h-1 bg-gradient-to-r from-blue-500 to-blue-400" />
 
         <button
           onClick={handleClose}
-          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-sky-50 hover:text-gray-500 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-sky-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:bg-sky-900/30 dark:hover:text-gray-400"
+          className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-gray-300 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-500 focus-visible:opacity-100 group-hover:opacity-100 dark:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-400"
           aria-label="Dismiss summary"
         >
           <HiXMark className="h-4 w-4" />
         </button>
 
-        <div className="p-5 pt-6">
+        <div className="p-5 pt-4">
           <div className="mb-3 flex items-center gap-2.5">
-            <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-0.5 text-xs font-medium text-sky-700 dark:bg-sky-900/50 dark:text-sky-300">
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
               <HiOutlineSparkles className="h-3.5 w-3.5" />
               AI summary
             </span>
