@@ -16,14 +16,18 @@ export async function POST(
     const { conversationId } = await params
     await assertConversationMember(session.user.id, conversationId)
 
-    await pusherServer.trigger(
-      `private-conversation-${conversationId}`,
-      "typing:start",
-      {
-        userId: session.user.id,
-        userName: session.user.name || "Someone",
-      }
-    )
+    try {
+      await pusherServer.trigger(
+        `private-conversation-${conversationId}`,
+        "typing:start",
+        {
+          userId: session.user.id,
+          userName: session.user.name || "Someone",
+        }
+      )
+    } catch (e) {
+      console.warn("PUSHER_TYPING_FAILED", e)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

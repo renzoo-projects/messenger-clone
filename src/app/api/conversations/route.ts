@@ -72,8 +72,9 @@ export async function POST(request: Request) {
     const body = await request.json()
     const parsed = conversationSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("CONVERSATIONS_POST_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
 
       const transformedGroup = transformConversation(conversation)
 
-      await Promise.all(
+      await Promise.allSettled(
         conversation.users.map((member) =>
           pusherServer.trigger(
             `private-${member.user.id}`,
@@ -187,7 +188,7 @@ export async function POST(request: Request) {
 
     const transformed = transformConversation(conversation)
 
-    await Promise.all([
+    await Promise.allSettled([
       pusherServer.trigger(`private-${session.user.id}`, "conversation:new", transformed),
       pusherServer.trigger(`private-${userId}`, "conversation:new", transformed),
     ])

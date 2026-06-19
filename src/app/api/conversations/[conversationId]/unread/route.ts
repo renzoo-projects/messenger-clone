@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import prismadb from "@/lib/prismadb"
 import pusherServer from "@/lib/pusherServer"
 import { transformConversation } from "@/lib/conversationTransformer"
-import { assertConversationMember } from "@/lib/conversationAuth"
+import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
 
 export async function POST(
   _request: Request,
@@ -59,6 +59,9 @@ export async function POST(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("UNREAD_POST", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

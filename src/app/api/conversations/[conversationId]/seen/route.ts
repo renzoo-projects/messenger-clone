@@ -41,22 +41,30 @@ export async function POST(
         select: { id: true, name: true, image: true, email: true, emailVerified: true, hashedPassword: true, createdAt: true, updatedAt: true },
       })
 
-      await pusherServer.trigger(
-        `private-conversation-${conversationId}`,
-        "messages:seen",
-        {
-          messageIds: messageIds.map((m) => m.id),
-          userId: currentUserId,
-          user: sanitizeUser(currentUserData!),
-        }
-      )
+      try {
+        await pusherServer.trigger(
+          `private-conversation-${conversationId}`,
+          "messages:seen",
+          {
+            messageIds: messageIds.map((m) => m.id),
+            userId: currentUserId,
+            user: sanitizeUser(currentUserData!),
+          }
+        )
+      } catch (e) {
+        console.warn("PUSHER_SEEN_FAILED", e)
+      }
     }
 
-    await pusherServer.trigger(
-      `private-${currentUserId}`,
-      "conversation:update",
-      { id: conversationId, unreadCount: 0 }
-    )
+    try {
+      await pusherServer.trigger(
+        `private-${currentUserId}`,
+        "conversation:update",
+        { id: conversationId, unreadCount: 0 }
+      )
+    } catch (e) {
+      console.warn("PUSHER_UNREAD_UPDATE_FAILED", e)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

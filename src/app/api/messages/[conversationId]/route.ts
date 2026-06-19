@@ -80,8 +80,9 @@ export async function POST(
     const body = await request.json()
     const parsed = messageSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("MESSAGES_POST_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }
@@ -132,11 +133,15 @@ export async function POST(
       },
     })
 
-    await pusherServer.trigger(
-      `private-conversation-${conversationId}`,
-      "messages:new",
-      newMessage
-    )
+    try {
+      await pusherServer.trigger(
+        `private-conversation-${conversationId}`,
+        "messages:new",
+        newMessage
+      )
+    } catch (e) {
+      console.warn("PUSHER_MESSAGE_NEW_FAILED", e)
+    }
 
     const [convData, lastMsg] = await Promise.all([
       prismadb.conversation.findUnique({

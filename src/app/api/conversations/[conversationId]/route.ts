@@ -4,7 +4,7 @@ import prismadb from "@/lib/prismadb"
 import pusherServer from "@/lib/pusherServer"
 import { transformConversation } from "@/lib/conversationTransformer"
 import { conversationPatchSchema } from "@/lib/validations"
-import { assertConversationMember } from "@/lib/conversationAuth"
+import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
 
 export async function GET(
   _request: Request,
@@ -56,6 +56,9 @@ export async function GET(
     return NextResponse.json(transformed)
   } catch (error) {
     console.error("CONVERSATION_GET", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }
@@ -75,8 +78,9 @@ export async function PATCH(
     const body = await request.json()
     const parsed = conversationPatchSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("PATCH_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }
@@ -93,15 +97,22 @@ export async function PATCH(
 
     const transformed = transformConversation(conversation)
 
-    await pusherServer.trigger(
-      `private-conversation-${conversationId}`,
-      "conversation:update",
-      transformed
-    )
+    try {
+      await pusherServer.trigger(
+        `private-conversation-${conversationId}`,
+        "conversation:update",
+        transformed
+      )
+    } catch (e) {
+      console.warn("PUSHER_UPDATE_FAILED", e)
+    }
 
     return NextResponse.json(transformed)
   } catch (error) {
     console.error("CONVERSATION_PATCH", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }
@@ -137,25 +148,32 @@ export async function DELETE(
 
     const deletePayload = { id: conversationId }
 
-    await pusherServer.trigger(
-      `private-conversation-${conversationId}`,
-      "conversation:delete",
-      deletePayload
-    )
+    try {
+      await pusherServer.trigger(
+        `private-conversation-${conversationId}`,
+        "conversation:delete",
+        deletePayload
+      )
 
-    await Promise.all(
-      existing.users.map((member) =>
-        pusherServer.trigger(
-          `private-${member.userId}`,
-          "conversation:delete",
-          deletePayload
+      await Promise.allSettled(
+        existing.users.map((member) =>
+          pusherServer.trigger(
+            `private-${member.userId}`,
+            "conversation:delete",
+            deletePayload
+          )
         )
       )
-    )
+    } catch (e) {
+      console.warn("PUSHER_DELETE_FAILED", e)
+    }
 
     return NextResponse.json(deletePayload)
   } catch (error) {
     console.error("CONVERSATION_DELETE", error)
+    if (error instanceof ForbiddenError) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     return NextResponse.json({ error: "Internal error" }, { status: 500 })
   }
 }

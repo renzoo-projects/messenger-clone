@@ -14,8 +14,9 @@ export async function PATCH(request: Request) {
     const body = await request.json()
     const parsed = settingsSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("SETTINGS_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }

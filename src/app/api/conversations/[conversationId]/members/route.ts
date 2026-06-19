@@ -39,8 +39,9 @@ export async function POST(
     const body = await request.json()
     const parsed = addMemberSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("MEMBERS_POST_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }
@@ -107,8 +108,9 @@ export async function DELETE(
     const body = await request.json()
     const parsed = removeMemberSchema.safeParse(body)
     if (!parsed.success) {
+      console.error("MEMBERS_DELETE_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input: " + parsed.error.issues.map(e => e.message).join(", ") },
+        { error: "Invalid input" },
         { status: 400 }
       )
     }
