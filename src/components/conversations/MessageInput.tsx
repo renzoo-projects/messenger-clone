@@ -148,6 +148,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           value={text}
           onChange={handleTextChange}
           onFocus={onEngage}
+          autoFocus
           placeholder="Type a message"
           disabled={isLoading}
           aria-label="Message text"

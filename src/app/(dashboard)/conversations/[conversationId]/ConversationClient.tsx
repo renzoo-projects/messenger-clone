@@ -258,7 +258,7 @@ export default function ConversationClient({
         }}
       />
       <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
-      <MessageInput onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
+      <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
     </div>
   )
 }
