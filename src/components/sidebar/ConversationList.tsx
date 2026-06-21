@@ -21,19 +21,9 @@ export default function ConversationList({
   const [refreshing, setRefreshing] = useState(false)
   const [pullDistance, setPullDistance] = useState(0)
   const isOnConversationsPage = pathname === "/conversations"
-  const prefetchedRef = useRef(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
   const isPulling = useRef(false)
-
-  useEffect(() => {
-    if (prefetchedRef.current) return
-    if (conversations.length === 0) return
-    prefetchedRef.current = true
-    conversations.forEach((conv) => {
-      router.prefetch(`/conversations/${conv.id}`)
-    })
-  }, [conversations, router])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (scrollRef.current && scrollRef.current.scrollTop === 0) {
