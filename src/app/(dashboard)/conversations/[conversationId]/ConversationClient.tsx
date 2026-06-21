@@ -91,7 +91,12 @@ export default function ConversationClient({
         const msgData = msgRes.ok ? await msgRes.json() : { messages: [], nextCursor: null }
 
         setConversation(conv)
-        setMessages(msgData.messages ?? [])
+        setMessages((prev) => {
+          const incoming = msgData.messages ?? []
+          const incomingIds = new Set(incoming.map((m: FullMessageType) => m.id))
+          const prevNonTemp = prev.filter(m => !incomingIds.has(m.id))
+          return [...incoming, ...prevNonTemp]
+        })
         setNextCursor(msgData.nextCursor ?? null)
         setLoading(false)
 
@@ -221,7 +226,12 @@ export default function ConversationClient({
         if (msgRes.ok) {
           const data = await msgRes.json()
           if (data.messages?.length) {
-            setMessages(data.messages)
+            setMessages((prev) => {
+              const incoming = data.messages
+              const incomingIds = new Set(incoming.map((m: any) => m.id))
+              const prevNonTemp = prev.filter((m) => !incomingIds.has(m.id))
+              return [...incoming, ...prevNonTemp]
+            })
             setNextCursor(data.nextCursor ?? null)
             cache.setCached(conversationId, {
               messages: data.messages,
