@@ -14,32 +14,38 @@ const ProfileDrawer = dynamic(() => import("@/components/conversations/ProfileDr
 const GroupDrawer = dynamic(() => import("@/components/conversations/GroupDrawer"))
 const SummaryBanner = dynamic(() => import("@/components/conversations/SummaryBanner"))
 import useConversation from "@/hooks/useConversation"
+import useConversationCache from "@/hooks/useConversationCache"
 import { getPusherClient } from "@/lib/pusherClient"
 import usePusherConnection from "@/lib/pusherConnectionStore"
 import { hapticLight } from "@/lib/haptic"
 import { FullConversationType, FullMessageType } from "@/types"
 
 interface ConversationClientProps {
-  initialConversation: FullConversationType
   conversationId: string
-  initialCursor?: string | null
 }
 
 export default function ConversationClient({
-  initialConversation,
   conversationId,
-  initialCursor,
 }: ConversationClientProps) {
   const router = useRouter()
   const { data: session } = useSession()
   const { setConversationId } = useConversation()
-  const [conversation, setConversation] = useState(initialConversation)
-  const [messages, setMessages] = useState<FullMessageType[]>(initialConversation.messages)
+  const cache = useConversationCache()
+  const cached = cache.getCached(conversationId)
+  const [conversation, setConversation] = useState<FullConversationType | null>(
+    cached?.conversation ?? null
+  )
+  const [messages, setMessages] = useState<FullMessageType[]>(
+    cached?.messages ?? []
+  )
   const [summary, setSummary] = useState<string | null>(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [summaryMessageCount, setSummaryMessageCount] = useState(0)
   const [summaryError, setSummaryError] = useState<string | null>(null)
-  const [nextCursor, setNextCursor] = useState<string | null>(initialCursor ?? null)
+  const [nextCursor, setNextCursor] = useState<string | null>(
+    cached?.nextCursor ?? null
+  )
+  const [loading, setLoading] = useState(!cached)
   const [loadingMore, setLoadingMore] = useState(false)
   const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set())
   const channelRef = useRef<any>(null)
@@ -60,9 +66,38 @@ export default function ConversationClient({
   }, [conversationId, setConversationId])
 
   useEffect(() => {
-    setMessages(initialConversation.messages)
-    setNextCursor(initialCursor ?? null)
-  }, [initialConversation, initialCursor])
+    if (!conversationId) return
+
+    const currentlyCached = cache.getCached(conversationId)
+    if (currentlyCached) return // already have fresh cached data, background refresh only needed on reconnect
+
+    const fetchData = async () => {
+      try {
+        const [convRes, msgRes] = await Promise.all([
+          fetch(`/api/conversations/${conversationId}`),
+          fetch(`/api/messages/${conversationId}?take=25`),
+        ])
+        if (!convRes.ok) return
+        const conv = await convRes.json()
+        const msgData = msgRes.ok ? await msgRes.json() : { messages: [], nextCursor: null }
+
+        setConversation(conv)
+        setMessages(msgData.messages ?? [])
+        setNextCursor(msgData.nextCursor ?? null)
+        setLoading(false)
+
+        cache.setCached(conversationId, {
+          conversation: conv,
+          messages: msgData.messages ?? [],
+          nextCursor: msgData.nextCursor ?? null,
+        })
+      } catch {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [conversationId, cache])
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !nextCursor) return
@@ -172,12 +207,17 @@ export default function ConversationClient({
         if (convRes.ok) {
           const conv = await convRes.json()
           setConversation(conv)
+          cache.setCached(conversationId, { conversation: conv })
         }
         if (msgRes.ok) {
           const data = await msgRes.json()
           if (data.messages?.length) {
             setMessages(data.messages)
             setNextCursor(data.nextCursor ?? null)
+            cache.setCached(conversationId, {
+              messages: data.messages,
+              nextCursor: data.nextCursor ?? null,
+            })
           }
         }
       } catch {
@@ -185,7 +225,7 @@ export default function ConversationClient({
       }
     }
     refetch()
-  }, [conversationId, status])
+  }, [conversationId, status, cache])
 
   const handleTypingStart = useCallback(() => {
     fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {})
