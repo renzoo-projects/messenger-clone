@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/types"
 import { getPusherClient } from "@/lib/pusherClient"
 import usePusherConnection from "@/lib/pusherConnectionStore"
+import useConversationCache from "@/hooks/useConversationCache"
 
 export function useConversations(initialData?: FullConversationType[]) {
   const { data: session } = useSession()
@@ -12,6 +13,7 @@ export function useConversations(initialData?: FullConversationType[]) {
   const [isLoading, setIsLoading] = useState(!initialData)
   const channelRef = useRef<any>(null)
   const userId = session?.user?.id
+  const cache = useConversationCache()
 
   useEffect(() => {
     if (initialData || !userId) {
@@ -49,13 +51,27 @@ export function useConversations(initialData?: FullConversationType[]) {
         if (exists) return prev
         return [conversation, ...prev]
       })
+      cache.setCached(conversation.id, {
+        conversation,
+        messages: conversation.messages ?? [],
+        nextCursor: null,
+      })
     })
 
     channel.bind("conversation:update", (data: any) => {
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== data.id) return c
-          if ("users" in data) return data as FullConversationType
+          if ("users" in data) {
+            cache.setCached(data.id, { conversation: data as FullConversationType })
+            return data as FullConversationType
+          }
+          const existing = cache.getCached(data.id)
+          if (existing) {
+            cache.setCached(data.id, {
+              conversation: { ...existing.conversation, unreadCount: data.unreadCount ?? 0 },
+            })
+          }
           return { ...c, unreadCount: data.unreadCount ?? 0 }
         })
       )
@@ -63,6 +79,7 @@ export function useConversations(initialData?: FullConversationType[]) {
 
     channel.bind("conversation:delete", (deleted: { id: string }) => {
       setConversations((prev) => prev.filter((c) => c.id !== deleted.id))
+      cache.clearCached(deleted.id)
     })
 
     return () => {
@@ -70,7 +87,7 @@ export function useConversations(initialData?: FullConversationType[]) {
       pusherClient.unsubscribe(channelName)
       channelRef.current = null
     }
-  }, [userId])
+  }, [userId, cache])
 
   const { status, previousStatus } = usePusherConnection()
   const isReconnectedRef = useRef(false)

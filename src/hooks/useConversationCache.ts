@@ -53,6 +53,7 @@ const useConversationCache = create<ConversationCacheState>((set, get) => ({
         fetch(`/api/conversations/${id}`),
         fetch(`/api/messages/${id}?take=25`),
       ])
+      if (!convRes.ok || !msgRes.ok) return
       const [conversation, msgData] = await Promise.all([
         convRes.json(),
         msgRes.json(),

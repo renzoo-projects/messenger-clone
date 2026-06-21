@@ -11,6 +11,7 @@ import { format } from "date-fns"
 import { HiEllipsisHorizontal, HiOutlineEnvelope, HiOutlineEnvelopeOpen, HiTrash } from "react-icons/hi2"
 import toast from "react-hot-toast"
 import { hapticLight } from "@/lib/haptic"
+import useConversationCache from "@/hooks/useConversationCache"
 
 interface ConversationBoxProps {
   conversation: FullConversationType
@@ -82,6 +83,8 @@ const ConversationBox = memo(function ConversationBox({
 
   const unreadCount = conversation.unreadCount || 0
 
+  const cache = useConversationCache()
+
   const handleClick = useCallback(() => {
     if (swiped) return
     router.push(`/conversations/${conversation.id}`)
@@ -89,7 +92,8 @@ const ConversationBox = memo(function ConversationBox({
 
   const handleMouseEnter = useCallback(() => {
     router.prefetch(`/conversations/${conversation.id}`)
-  }, [router, conversation.id])
+    cache.prefetchConversation(conversation.id)
+  }, [router, conversation.id, cache])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
