@@ -5,7 +5,6 @@ import { transformConversation } from "@/lib/conversationTransformer"
 import Sidebar from "@/components/sidebar/Sidebar"
 import ConversationList from "@/components/sidebar/ConversationList"
 import SettingsModal from "@/components/sidebar/SettingsModal"
-import PusherConnectionIndicator from "@/components/PusherConnectionIndicator"
 import { FullConversationType } from "@/types"
 
 async function getConversations(userId: string): Promise<FullConversationType[]> {
@@ -68,7 +67,6 @@ export default async function DashboardLayout({
 
   return (
     <div className="h-full">
-      <PusherConnectionIndicator />
       <SettingsModal />
       <Sidebar />
       <ConversationList initialConversations={initialConversations} />
