@@ -195,7 +195,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                     )}
                     {message.image && (
                       <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                        <div className="relative max-w-[240px] w-full aspect-square">
+                        <div className="relative w-60 h-60 max-w-full">
                           <Image
                             src={message.image}
                             alt={`Image shared by ${sender.name || "Unknown"}`}

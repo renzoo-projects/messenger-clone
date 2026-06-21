@@ -130,10 +130,10 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
           <button
             type="button"
             onClick={clearPreview}
-            className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-gray-800/70 text-white hover:bg-gray-800 transition"
+            className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800/70 text-white hover:bg-gray-800/90 transition"
             aria-label="Remove image"
           >
-            <HiXMark className="h-4 w-4" />
+            <HiXMark className="h-3.5 w-3.5" />
           </button>
         </div>
       )}
