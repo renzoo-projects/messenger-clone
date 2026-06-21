@@ -87,19 +87,15 @@ export async function POST(
       )
     }
 
-    const { message, image } = parsed.data
+    const { message, image, images } = parsed.data
 
-    if (!message && !image) {
-      return NextResponse.json(
-        { error: "Message or image required" },
-        { status: 400 }
-      )
-    }
+    const allImages = images && images.length > 0 ? images : (image ? [image] : [])
 
     const newMessage = await prismadb.message.create({
       data: {
         body: message || null,
-        image: image || null,
+        image: image || allImages[0] || null,
+        images: allImages,
         conversationId,
         senderId: currentUserId,
         seenBy: {
@@ -110,6 +106,7 @@ export async function POST(
         id: true,
         body: true,
         image: true,
+        images: true,
         createdAt: true,
         senderId: true,
         conversationId: true,
@@ -169,7 +166,7 @@ export async function POST(
         where: { conversationId },
         orderBy: { createdAt: "desc" },
         select: {
-          id: true, body: true, image: true, createdAt: true,
+          id: true, body: true, image: true, images: true, createdAt: true,
           sender: {
             select: {
               id: true, name: true, image: true, email: true,

@@ -193,32 +193,54 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                         )}
                       </div>
                     )}
-                    {message.image && (
-                      <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                        <div className="relative w-60 h-60 max-w-full">
-                          <Image
-                            src={message.image}
-                            alt={`Image shared by ${sender.name || "Unknown"}`}
-                            fill
-                            className="rounded-xl object-cover shadow-sm"
-                            sizes="240px"
-                          />
-                        </div>
-                        {message.body && (
-                          <div
-                            className={clsx(
-                              "rounded-[22px] px-4 py-2 text-sm mt-1",
-                              isOwn
-                                ? "bg-blue-500 text-white rounded-br-sm"
-                                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
-                            )}
-                          >
-                            {message.body}
+                    {(() => {
+                      const images = message.images?.length ? message.images : (message.image ? [message.image] : [])
+                      if (images.length === 0) return null
+                      const gridClass = images.length === 1
+                        ? "grid-cols-1"
+                        : images.length === 2
+                          ? "grid-cols-2"
+                          : "grid-cols-2"
+                      return (
+                        <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
+                          <div className={clsx("grid gap-0.5 overflow-hidden rounded-xl", gridClass, images.length <= 2 ? "w-60 max-w-full" : "w-72 max-w-full")}>
+                            {images.slice(0, 4).map((img, i) => {
+                              const isLast = i === 3 && images.length > 4
+                              const cellClass = images.length === 3 && i === 0 ? "col-span-2" : ""
+                              return (
+                                <div key={i} className={clsx("relative", cellClass, images.length <= 2 ? "h-60" : images.length === 3 && i === 0 ? "h-48" : "h-36")}>
+                                  <Image
+                                    src={img}
+                                    alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
+                                    fill
+                                    className="object-cover"
+                                    sizes={images.length <= 2 ? "240px" : "144px"}
+                                  />
+                                  {isLast && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                      <span className="text-white text-xl font-bold">+{images.length - 4}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
                           </div>
-                        )}
-                      </div>
-                    )}
-                    {!message.image && message.body && (
+                          {message.body && (
+                            <div
+                              className={clsx(
+                                "rounded-[22px] px-4 py-2 text-sm mt-1",
+                                isOwn
+                                  ? "bg-blue-500 text-white rounded-br-sm"
+                                  : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-sm shadow-sm"
+                              )}
+                            >
+                              {message.body}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
+                    {!message.images?.length && !message.image && message.body && (
                       <div
                         className={clsx(
                           "rounded-[22px] px-4 py-2 text-sm",

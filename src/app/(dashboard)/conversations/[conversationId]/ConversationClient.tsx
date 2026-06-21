@@ -301,13 +301,14 @@ export default function ConversationClient({
     }
   }, [conversationId])
 
-  const handleSendMessage = useCallback(async (body: string, image?: string) => {
+  const handleSendMessage = useCallback(async (body: string, images?: string[]) => {
     const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
     const tempMessage: FullMessageType & { _status?: string } = {
       id: tempId,
       body: body || null,
-      image: image || null,
+      image: images?.[0] || null,
+      images: images || [],
       createdAt: new Date().toISOString(),
       sender: {
         id: currentUserId,
@@ -327,7 +328,7 @@ export default function ConversationClient({
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: body, image: image || undefined }),
+        body: JSON.stringify({ message: body, images }),
       })
       if (!res.ok) throw new Error("Failed to send")
       const realMessage = await res.json()

@@ -1,20 +1,25 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { HiPaperAirplane, HiPhoto, HiXMark } from "react-icons/hi2"
 import toast from "react-hot-toast"
 
+interface Attachment {
+  id: string
+  file: File
+  url: string
+}
+
 interface MessageInputProps {
-  onSend: (message: string, image?: string) => Promise<void>
+  onSend: (message: string, images?: string[]) => Promise<void>
   onEngage?: () => void
   onTypingAction?: (action: "start" | "stop") => void
 }
 
 export default function MessageInput({ onSend, onEngage, onTypingAction }: MessageInputProps) {
   const [text, setText] = useState("")
-  const [previewFile, setPreviewFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
@@ -23,9 +28,9 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
 
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      attachments.forEach((a) => URL.revokeObjectURL(a.url))
     }
-  }, [previewUrl])
+  }, [])
 
   useEffect(() => {
     const vv = window.visualViewport
@@ -67,44 +72,55 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
     e.target.value = ""
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
+
+    const newAttachments = files.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      url: URL.createObjectURL(file),
+    }))
+    setAttachments((prev) => [...prev, ...newAttachments])
   }
 
-  const clearPreview = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewFile(null)
-    setPreviewUrl(null)
-  }
+  const removeAttachment = useCallback((id: string) => {
+    setAttachments((prev) => {
+      const item = prev.find((a) => a.id === id)
+      if (item) URL.revokeObjectURL(item.url)
+      return prev.filter((a) => a.id !== id)
+    })
+  }, [])
+
+  const clearAttachments = useCallback(() => {
+    attachments.forEach((a) => URL.revokeObjectURL(a.url))
+    setAttachments([])
+  }, [attachments])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!text.trim() && !previewFile) return
+    if (!text.trim() && attachments.length === 0) return
 
     const messageText = text.trim()
-    const currentPreview = previewFile
+    const currentAttachments = attachments
 
     setText("")
-    clearPreview()
+    clearAttachments()
 
     try {
-      let imageUrl: string | undefined
-
-      if (currentPreview) {
+      const uploadPromises = currentAttachments.map(async (att) => {
         const formData = new FormData()
-        formData.append("file", currentPreview)
+        formData.append("file", att.file)
         const res = await fetch("/api/upload", { method: "POST", body: formData })
         if (!res.ok) throw new Error("Upload failed")
         const data = await res.json()
         if (!data.url) throw new Error("No URL returned")
-        imageUrl = data.url
-      }
+        return data.url
+      })
 
-      await onSend(messageText, imageUrl)
+      const imageUrls = await Promise.all(uploadPromises)
+
+      await onSend(messageText, imageUrls.length > 0 ? imageUrls : undefined)
       if (onTypingAction) onTypingAction("stop")
     } catch {
       toast.error("Failed to send message")
@@ -117,24 +133,27 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
       className="sticky bottom-0 bg-transparent px-4 pt-2 transition-[padding-bottom]"
       style={keyboardOffset > 0 ? { paddingBottom: `${keyboardOffset}px` } : undefined}
     >
-      {previewUrl && (
-        <div className="relative mb-3">
-          <Image
-            src={previewUrl}
-            alt="Image preview"
-            width={0}
-            height={0}
-            className="rounded-xl max-w-48 w-full h-auto shadow-sm"
-            sizes="192px"
-          />
-          <button
-            type="button"
-            onClick={clearPreview}
-            className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800/70 text-white hover:bg-gray-800/90 transition"
-            aria-label="Remove image"
-          >
-            <HiXMark className="h-3.5 w-3.5" />
-          </button>
+      {attachments.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {attachments.map((att) => (
+            <div key={att.id} className="relative w-36 h-36">
+              <Image
+                src={att.url}
+                alt="Image preview"
+                fill
+                className="rounded-xl object-cover shadow-sm"
+                sizes="144px"
+              />
+              <button
+                type="button"
+                onClick={() => removeAttachment(att.id)}
+                className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-800/70 text-white hover:bg-gray-800/90 transition"
+                aria-label="Remove image"
+              >
+                <HiXMark className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
         </div>
       )}
       <form onSubmit={handleSubmit} className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-2xl px-3 py-2 shadow-elevated dark:shadow-elevated-dark border border-gray-100 dark:border-gray-800">
@@ -142,6 +161,7 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileSelect}
         />
@@ -167,7 +187,7 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
         />
         <button
           type="submit"
-          disabled={!text.trim() && !previewFile}
+          disabled={!text.trim() && attachments.length === 0}
           className="flex items-center justify-center h-11 w-11 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition disabled:opacity-50"
           aria-label="Send message"
         >

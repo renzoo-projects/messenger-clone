@@ -52,6 +52,7 @@ export function transformConversation(conv: any): FullConversationType {
       id: msg.id,
       body: msg.body,
       image: msg.image,
+      images: msg.images || [],
       createdAt:
         typeof msg.createdAt === "string"
           ? msg.createdAt

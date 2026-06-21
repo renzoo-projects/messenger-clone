@@ -20,7 +20,8 @@ export const conversationPatchSchema = z.object({
 export const messageSchema = z.object({
   message: z.string().max(5000).optional(),
   image: z.string().url().optional(),
-}).refine((data) => data.message || data.image, { message: "Message or image required" })
+  images: z.array(z.string().url()).optional(),
+}).refine((data) => data.message || data.image || (data.images && data.images.length > 0), { message: "Message or image required" })
 
 export const addMemberSchema = z.object({
   userId: z.string().min(1).max(100),
