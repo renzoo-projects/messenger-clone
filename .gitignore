@@ -45,3 +45,11 @@ prisma/generated/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+docs
+
+# opencode
+.opencode/
+
+# claude
+.claude/
