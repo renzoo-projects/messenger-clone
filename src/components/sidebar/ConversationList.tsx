@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { useConversations } from "@/hooks/useConversations"
 import { FullConversationType } from "@/types"
