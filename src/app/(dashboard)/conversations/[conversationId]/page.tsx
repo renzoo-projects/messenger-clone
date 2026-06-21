@@ -17,20 +17,21 @@ export default async function ConversationPage({
 
   const { conversationId } = await params
 
-  const [conversation, unreadCount] = await Promise.all([
+  const [conversation, messages, unreadCount] = await Promise.all([
     prismadb.conversation.findUnique({
       where: { id: conversationId },
       include: {
         users: { include: { user: true } },
-        messages: {
-          include: {
-            sender: true,
-            seenBy: { include: { user: true } },
-          },
-          orderBy: { createdAt: "desc" },
-          take: 50,
-        },
       },
+    }),
+    prismadb.message.findMany({
+      where: { conversationId },
+      include: {
+        sender: true,
+        seenBy: { include: { user: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 25,
     }),
     prismadb.message.count({
       where: {
@@ -50,14 +51,14 @@ export default async function ConversationPage({
     notFound()
   }
 
-  conversation.messages.reverse()
+  messages.reverse()
 
   const initialCursor =
-    conversation.messages.length > 0
-      ? conversation.messages[0].id
+    messages.length > 0
+      ? messages[0].id
       : null
 
-  const transformed = transformConversation(conversation)
+  const transformed = transformConversation({ ...conversation, messages })
   transformed.unreadCount = unreadCount
 
   return (
