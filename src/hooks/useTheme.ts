@@ -11,7 +11,9 @@ interface ThemeStore {
 }
 
 export const useTheme = create<ThemeStore>((set) => ({
-  theme: "light",
+  theme: typeof window !== "undefined"
+    ? (localStorage.getItem("theme") as Theme | null) ?? "light"
+    : "light",
   toggle: () =>
     set((state) => {
       const next = state.theme === "light" ? "dark" : "light"

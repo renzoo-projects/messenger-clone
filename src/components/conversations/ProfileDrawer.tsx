@@ -15,9 +15,9 @@ export default function ProfileDrawer() {
   }, [user?.createdAt])
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} titleId="profile-title">
       <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
+        <h2 id="profile-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">Profile</h2>
         <button
           onClick={onClose}
           className="flex items-center justify-center h-11 w-11 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"

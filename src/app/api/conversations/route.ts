@@ -139,6 +139,17 @@ export async function POST(request: Request) {
       )
     }
 
+    const targetUser = await prismadb.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+    if (!targetUser) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 400 }
+      )
+    }
+
     const existingConversations = await prismadb.conversation.findMany({
       where: {
         AND: [

@@ -30,7 +30,7 @@ const TypingIndicator = memo(function TypingIndicator({
   if (typingUsers.length === 0) return null
 
   return (
-    <div className="flex gap-2 mb-1 motion-safe:animate-fadeIn">
+    <div className="flex gap-2 mb-1 motion-safe:animate-fadeIn" role="status" aria-live="polite">
       <div className="flex-shrink-0 mt-1 self-end">
         <Avatar user={typingUsers[0]} size="sm" />
       </div>
@@ -96,18 +96,16 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
     return format(date, "EEEE, MMMM d")
   }, [])
 
-  const seenByText = useMemo(() => {
+  const seenByText = useCallback((message: FullMessageType) => {
     const currentUserId = session?.user?.id
-    return (message: FullMessageType) => {
-      if (!currentUserId) return ""
-      const others = message.seenBy
-        .filter((s) => s.user.id !== currentUserId)
-        .map((s) => s.user.name || "Unknown")
-      if (others.length === 0) return ""
-      if (others.length === 1) return `Seen by ${others[0]}`
-      if (others.length === 2) return `Seen by ${others[0]} and ${others[1]}`
-      return `Seen by ${others[0]}, ${others[1]}, and ${others.length - 2} others`
-    }
+    if (!currentUserId) return ""
+    const others = message.seenBy
+      .filter((s) => s.user.id !== currentUserId)
+      .map((s) => s.user.name || "Unknown")
+    if (others.length === 0) return ""
+    if (others.length === 1) return `Seen by ${others[0]}`
+    if (others.length === 2) return `Seen by ${others[0]} and ${others[1]}`
+    return `Seen by ${others[0]}, ${others[1]}, and ${others.length - 2} others`
   }, [session?.user?.id])
 
   const groupedMessages = useMemo(() => {
@@ -160,22 +158,23 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
               </span>
             </div>
             {group.messages.map((message, index) => {
-              const isOwn = message.sender.id === session?.user?.id
+              const sender = message.sender ?? { id: "", name: "Deleted user", image: null, email: "" } as any
+              const isOwn = sender.id === session?.user?.id
               const seenText = seenByText(message)
               const animClass = isOwn ? "motion-safe:animate-slideInRight" : "motion-safe:animate-slideInLeft"
               const isLatest = index === group.messages.length - 1
-              const isOnline = members.includes(message.sender.id)
+              const isOnline = members.includes(sender.id)
 
               return (
                 <div
                   key={message.id}
                   className={clsx("flex gap-2 mb-1", isOwn && "justify-end", animClass)}
                   style={{ animationDelay: isLatest ? "0ms" : `${Math.min(index * 30, 150)}ms` }}
-                  aria-label={`Message from ${message.sender.name || "Unknown"}`}
+                  aria-label={`Message from ${sender.name || "Unknown"}`}
                 >
                   {!isOwn && (
                     <div className="flex-shrink-0 mt-1 self-end">
-                      <Avatar user={message.sender} size="sm" />
+                      <Avatar user={sender} size="sm" />
                     </div>
                   )}
                   <div
@@ -186,9 +185,9 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                   >
                     {isGroup && !isOwn && (
                       <div className="flex items-center gap-1.5 mb-0.5 ml-1">
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-                          {message.sender.name || "Unknown"}
-                        </span>
+                          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            {sender.name || "Unknown"}
+                          </span>
                         {isOnline && (
                           <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Online" />
                         )}
@@ -196,10 +195,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                     )}
                     {message.image && (
                       <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                        <div className="relative min-w-[200px] min-h-[200px]">
+                        <div className="relative max-w-[240px] w-full aspect-square">
                           <Image
                             src={message.image}
-                            alt={`Image shared by ${message.sender.name || "Unknown"}`}
+                            alt={`Image shared by ${sender.name || "Unknown"}`}
                             fill
                             className="rounded-xl object-cover shadow-sm"
                             sizes="240px"

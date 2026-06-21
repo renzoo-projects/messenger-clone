@@ -36,6 +36,9 @@ export async function POST(request: Request) {
 
     if (channelName.startsWith("private-conversation-")) {
       const convId = channelName.replace("private-conversation-", "")
+      if (!convId) {
+        return NextResponse.json({ error: "Invalid channel" }, { status: 400 })
+      }
       const isMember = await verifyConversationMembership(
         session.user.id,
         convId

@@ -4,7 +4,7 @@ import pusherServer from "@/lib/pusherServer"
 import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ conversationId: string }> }
 ) {
   try {
@@ -16,10 +16,14 @@ export async function POST(
     const { conversationId } = await params
     await assertConversationMember(session.user.id, conversationId)
 
+    const body = await request.json().catch(() => ({}))
+    const action = body?.action === "stop" ? "stop" : "start"
+    const event = action === "stop" ? "typing:stop" : "typing:start"
+
     try {
       await pusherServer.trigger(
         `private-conversation-${conversationId}`,
-        "typing:start",
+        event,
         {
           userId: session.user.id,
           userName: session.user.name || "Someone",

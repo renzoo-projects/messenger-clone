@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prismadb from "@/lib/prismadb"
 import { verifyConversationMembership } from "@/lib/conversationAuth"
+import { rateLimit } from "@/lib/rateLimit"
 
 export async function POST(
   request: Request,
@@ -11,6 +12,13 @@ export async function POST(
     const session = await auth()
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    if (!rateLimit(`summarize:${session.user.id}`, 5, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait before summarizing again." },
+        { status: 429 }
+      )
     }
 
     const { conversationId } = await params

@@ -66,7 +66,8 @@ export default function GroupDrawer() {
   useEffect(() => {
     if (!showAddMember || !conversation) return
     setAvailableLoading(true)
-    fetch("/api/users")
+    const abortController = new AbortController()
+    fetch("/api/users", { signal: abortController.signal })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load users")
         return res.json()
@@ -77,8 +78,12 @@ export default function GroupDrawer() {
           setAvailableUsers(data.filter((u: SafeUser) => !memberIds.has(u.id)))
         }
       })
-      .catch(() => toast.error("Failed to load users"))
+      .catch((err) => {
+        if (err instanceof DOMException) return
+        toast.error("Failed to load users")
+      })
       .finally(() => setAvailableLoading(false))
+    return () => abortController.abort()
   }, [showAddMember, conversation])
 
   const handleAddMember = async (userId: string) => {
@@ -138,9 +143,9 @@ export default function GroupDrawer() {
   if (!conversation) return null
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} titleId="group-info-title">
       <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Group Info</h2>
+        <h2 id="group-info-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">Group Info</h2>
         <button
           onClick={onClose}
           className="flex items-center justify-center h-11 w-11 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"

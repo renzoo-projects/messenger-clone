@@ -13,7 +13,9 @@ export function useConversations(initialData?: FullConversationType[]) {
   const [isLoading, setIsLoading] = useState(!initialData)
   const channelRef = useRef<any>(null)
   const userId = session?.user?.id
-  const cache = useConversationCache()
+  const setCached = useConversationCache((s) => s.setCached)
+  const getCached = useConversationCache((s) => s.getCached)
+  const clearCached = useConversationCache((s) => s.clearCached)
 
   useEffect(() => {
     if (initialData || !userId) {
@@ -51,7 +53,7 @@ export function useConversations(initialData?: FullConversationType[]) {
         if (exists) return prev
         return [conversation, ...prev]
       })
-      cache.setCached(conversation.id, {
+      setCached(conversation.id, {
         conversation,
         messages: conversation.messages ?? [],
         nextCursor: null,
@@ -63,12 +65,12 @@ export function useConversations(initialData?: FullConversationType[]) {
         prev.map((c) => {
           if (c.id !== data.id) return c
           if ("users" in data) {
-            cache.setCached(data.id, { conversation: data as FullConversationType })
+            setCached(data.id, { conversation: data as FullConversationType })
             return data as FullConversationType
           }
-          const existing = cache.getCached(data.id)
+          const existing = getCached(data.id)
           if (existing) {
-            cache.setCached(data.id, {
+            setCached(data.id, {
               conversation: { ...existing.conversation, unreadCount: data.unreadCount ?? 0 },
             })
           }
@@ -79,7 +81,7 @@ export function useConversations(initialData?: FullConversationType[]) {
 
     channel.bind("conversation:delete", (deleted: { id: string }) => {
       setConversations((prev) => prev.filter((c) => c.id !== deleted.id))
-      cache.clearCached(deleted.id)
+      clearCached(deleted.id)
     })
 
     return () => {
@@ -87,12 +89,17 @@ export function useConversations(initialData?: FullConversationType[]) {
       pusherClient.unsubscribe(channelName)
       channelRef.current = null
     }
-  }, [userId, cache])
+  }, [userId, setCached, getCached, clearCached])
 
   const { status, previousStatus } = usePusherConnection()
   const isReconnectedRef = useRef(false)
+  const initialConnectRef = useRef(true)
 
   useEffect(() => {
+    if (initialConnectRef.current) {
+      initialConnectRef.current = false
+      return
+    }
     if (previousStatus && previousStatus !== "connected" && status === "connected") {
       isReconnectedRef.current = true
     }

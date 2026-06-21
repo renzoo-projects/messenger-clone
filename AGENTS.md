@@ -4,7 +4,7 @@ This is a real-time messenger clone built with Next.js 16, Auth.js v5, MongoDB +
 
 ## Key Conventions
 
-- **Next.js 16** — App Router, async params (`await params`), `proxy.ts` instead of `middleware.ts`
+- **Next.js 16** — App Router, async params (`await params`)
 - **Auth.js v5** — `next-auth` package, `auth()` instead of `getServerSession()`
 - **Prisma + MongoDB** — document-based schema, no migrations needed for MongoDB adapter
 - **Pusher** — real-time events for messages, conversations, goals

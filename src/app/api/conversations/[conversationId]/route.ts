@@ -142,6 +142,17 @@ export async function DELETE(
       )
     }
 
+    const firstMember = await prismadb.conversationUser.findFirst({
+      where: { conversationId },
+      orderBy: { createdAt: "asc" },
+    })
+    if (firstMember?.userId !== session.user.id) {
+      return NextResponse.json(
+        { error: "Only the conversation creator can delete" },
+        { status: 403 }
+      )
+    }
+
     await prismadb.conversation.delete({
       where: { id: conversationId },
     })

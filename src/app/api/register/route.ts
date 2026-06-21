@@ -3,15 +3,24 @@ import prismadb from "@/lib/prismadb"
 import { NextResponse } from "next/server"
 import { registerSchema } from "@/lib/validations"
 import { sanitizeUser } from "@/lib/safeUser"
+import { rateLimit } from "@/lib/rateLimit"
 
 export async function POST(request: Request) {
   try {
+    const ip = request.headers.get("x-forwarded-for") ?? "unknown"
+    if (!rateLimit(`register:${ip}`, 5, 60_000)) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const parsed = registerSchema.safeParse(body)
     if (!parsed.success) {
       console.error("REGISTER_VALIDATION_ERROR", parsed.error.issues)
       return NextResponse.json(
-        { error: "Invalid input" },
+        { error: "Registration failed" },
         { status: 400 }
       )
     }
@@ -25,8 +34,8 @@ export async function POST(request: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: "Email already in use" },
-        { status: 409 }
+        { error: "Registration failed" },
+        { status: 400 }
       )
     }
 

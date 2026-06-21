@@ -83,7 +83,7 @@ export async function GET() {
     checkGoogle(),
   ])
 
-  const allOk = [mongo, pusher, cloudinary, authResult, google].every((r) => r.ok)
+  void [mongo, pusher, cloudinary, authResult, google].every((r) => r.ok)
 
   return NextResponse.json({
     mongo,

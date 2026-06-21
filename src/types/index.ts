@@ -14,7 +14,7 @@ export interface FullMessageType {
   body: string | null
   image: string | null
   createdAt: string
-  sender: SafeUser
+  sender: SafeUser | null
   seenBy: { user: SafeUser }[]
 }
 

@@ -124,7 +124,7 @@ export default function ConversationList({
           </div>
         ) : (
           <div className="motion-safe:animate-fadeIn">
-            {conversations.map((conversation, index) => (
+            {conversations.map((conversation) => (
               <div
                 key={conversation.id}
                 className=""

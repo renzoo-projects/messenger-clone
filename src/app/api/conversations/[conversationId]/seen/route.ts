@@ -3,7 +3,6 @@ import { NextResponse } from "next/server"
 import prismadb from "@/lib/prismadb"
 import pusherServer from "@/lib/pusherServer"
 import { assertConversationMember, ForbiddenError } from "@/lib/conversationAuth"
-import { sanitizeUser } from "@/lib/safeUser"
 
 export async function POST(
   _request: Request,
@@ -38,7 +37,7 @@ export async function POST(
 
       const currentUserData = await prismadb.user.findUnique({
         where: { id: currentUserId },
-        select: { id: true, name: true, image: true, email: true, emailVerified: true, hashedPassword: true, createdAt: true, updatedAt: true },
+        select: { id: true, name: true, image: true, email: true, emailVerified: true, createdAt: true, updatedAt: true },
       })
 
       try {
@@ -48,7 +47,15 @@ export async function POST(
           {
             messageIds: messageIds.map((m) => m.id),
             userId: currentUserId,
-            user: sanitizeUser(currentUserData!),
+            user: {
+              id: currentUserData!.id,
+              name: currentUserData!.name,
+              image: currentUserData!.image,
+              email: currentUserData!.email,
+              emailVerified: currentUserData!.emailVerified?.toISOString?.() ?? null,
+              createdAt: currentUserData!.createdAt.toISOString(),
+              updatedAt: currentUserData!.updatedAt.toISOString(),
+            },
           }
         )
       } catch (e) {

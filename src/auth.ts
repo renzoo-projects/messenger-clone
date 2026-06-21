@@ -49,12 +49,22 @@ export const { handlers, auth } = NextAuth({
     signIn: "/",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.sub = user.id
         token.name = user.name
         token.email = user.email
         token.picture = user.image
+      }
+      if (trigger === "update") {
+        const freshUser = await prismadb.user.findUnique({
+          where: { id: token.sub },
+          select: { name: true, image: true },
+        })
+        if (freshUser) {
+          token.name = freshUser.name
+          token.picture = freshUser.image
+        }
       }
       return token
     },

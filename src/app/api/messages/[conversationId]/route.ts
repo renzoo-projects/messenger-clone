@@ -198,19 +198,17 @@ export async function POST(
     const memberIds = convData?.users.map((u) => u.userId) || []
 
     const unreadCounts = await Promise.all(
-      memberIds
-        .filter((uid) => uid !== currentUserId)
-        .map((userId) =>
-          prismadb.message
-            .count({
-              where: {
-                conversationId,
-                senderId: { not: userId },
-                seenBy: { none: { userId } },
-              },
-            })
-            .then((count) => ({ userId, count }))
-        )
+      memberIds.map((userId) =>
+        prismadb.message
+          .count({
+            where: {
+              conversationId,
+              senderId: { not: userId },
+              seenBy: { none: { userId } },
+            },
+          })
+          .then((count) => ({ userId, count }))
+      )
     )
 
     await Promise.allSettled(

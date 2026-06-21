@@ -8,24 +8,24 @@ import toast from "react-hot-toast"
 interface MessageInputProps {
   onSend: (message: string, image?: string) => Promise<void>
   onEngage?: () => void
-  onTypingStart?: () => void
+  onTypingAction?: (action: "start" | "stop") => void
 }
 
-export default function MessageInput({ onSend, onEngage, onTypingStart }: MessageInputProps) {
+export default function MessageInput({ onSend, onEngage, onTypingAction }: MessageInputProps) {
   const [text, setText] = useState("")
   const [previewFile, setPreviewFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [keyboardOffset, setKeyboardOffset] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLDivElement>(null)
+  const typingThrottleRef = useRef(false)
+  const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
     }
   }, [previewUrl])
-
-  const typingThrottleRef = useRef(false)
 
   useEffect(() => {
     const vv = window.visualViewport
@@ -47,11 +47,23 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value)
-    if (onTypingStart && !typingThrottleRef.current) {
+    if (onTypingAction && !typingThrottleRef.current) {
       typingThrottleRef.current = true
-      onTypingStart()
+      onTypingAction("start")
       setTimeout(() => { typingThrottleRef.current = false }, 3000)
     }
+    if (onTypingAction) {
+      if (typingStopTimerRef.current) clearTimeout(typingStopTimerRef.current)
+      typingStopTimerRef.current = setTimeout(() => {
+        onTypingAction("stop")
+        typingStopTimerRef.current = undefined
+      }, 3000)
+    }
+  }
+
+  const handleBlur = () => {
+    if (typingStopTimerRef.current) clearTimeout(typingStopTimerRef.current)
+    if (onTypingAction) onTypingAction("stop")
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,7 +105,8 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
       }
 
       await onSend(messageText, imageUrl)
-    } catch (error) {
+      if (onTypingAction) onTypingAction("stop")
+    } catch {
       toast.error("Failed to send message")
     }
   }
@@ -147,6 +160,7 @@ export default function MessageInput({ onSend, onEngage, onTypingStart }: Messag
           value={text}
           onChange={handleTextChange}
           onFocus={onEngage}
+          onBlur={handleBlur}
           placeholder="Type a message"
           aria-label="Message text"
           className="flex-1 rounded-full border-0 bg-gray-100 dark:bg-gray-800 px-4 py-2 min-h-[44px] text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"

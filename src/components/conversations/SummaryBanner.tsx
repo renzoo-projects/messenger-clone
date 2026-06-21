@@ -111,7 +111,7 @@ const SummaryBanner = memo(function SummaryBanner({
             </span>
           </div>
 
-          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed" aria-live="polite">
             {summary}
           </p>
         </div>

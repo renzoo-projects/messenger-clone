@@ -28,8 +28,9 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
 
   useEffect(() => {
     if (!isOpen) return
+    const abortController = new AbortController()
 
-    fetch("/api/users")
+    fetch("/api/users", { signal: abortController.signal })
       .then((res) => {
         if (!res.ok) throw new Error("Failed to load users")
         return res.json()
@@ -37,7 +38,11 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
       .then((data) => {
         if (Array.isArray(data)) setUsers(data)
       })
-      .catch(() => toast.error("Failed to load users"))
+      .catch((err) => {
+        if (err instanceof DOMException) return
+        toast.error("Failed to load users")
+      })
+    return () => abortController.abort()
   }, [isOpen])
 
   const usersLoading = isOpen && users.length === 0
@@ -92,9 +97,9 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
   const title = groupMode ? "Create Group" : "New Message"
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} titleId="new-conversation-title">
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+        <h2 id="new-conversation-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
       </div>
 
       <div className="px-6 py-4 space-y-4">

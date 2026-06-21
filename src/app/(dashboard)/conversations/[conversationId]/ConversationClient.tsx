@@ -30,8 +30,9 @@ export default function ConversationClient({
   const router = useRouter()
   const { data: session } = useSession()
   const { setConversationId } = useConversation()
-  const cache = useConversationCache()
-  const cached = cache.getCached(conversationId)
+  const getCached = useConversationCache((s) => s.getCached)
+  const setCached = useConversationCache((s) => s.setCached)
+  const cached = getCached(conversationId)
   const [conversation, setConversation] = useState<FullConversationType | null>(
     cached?.conversation ?? null
   )
@@ -67,8 +68,9 @@ export default function ConversationClient({
 
   useEffect(() => {
     if (!conversationId) return
+    const abortController = new AbortController()
 
-    const currentlyCached = cache.getCached(conversationId)
+    const currentlyCached = getCached(conversationId)
     if (currentlyCached) {
       setConversation(currentlyCached.conversation)
       setMessages(currentlyCached.messages)
@@ -80,8 +82,8 @@ export default function ConversationClient({
     const fetchData = async () => {
       try {
         const [convRes, msgRes] = await Promise.all([
-          fetch(`/api/conversations/${conversationId}`),
-          fetch(`/api/messages/${conversationId}?take=25`),
+          fetch(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
+          fetch(`/api/messages/${conversationId}?take=25`, { signal: abortController.signal }),
         ])
         if (!convRes.ok) {
           setLoading(false)
@@ -100,18 +102,21 @@ export default function ConversationClient({
         setNextCursor(msgData.nextCursor ?? null)
         setLoading(false)
 
-        cache.setCached(conversationId, {
+        setCached(conversationId, {
           conversation: conv,
           messages: msgData.messages ?? [],
           nextCursor: msgData.nextCursor ?? null,
         })
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException) return
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [conversationId, cache])
+
+    return () => abortController.abort()
+  }, [conversationId, getCached, setCached])
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !nextCursor) return
@@ -165,7 +170,7 @@ export default function ConversationClient({
       router.push("/conversations")
     })
 
-    channel.bind("typing:start", ({ userId, userName }: { userId: string; userName: string }) => {
+    channel.bind("typing:start", ({ userId }: { userId: string }) => {
       if (userId === currentUserIdRef.current) return
       setTypingUserIds((prev) => {
         const next = new Set(prev)
@@ -187,10 +192,22 @@ export default function ConversationClient({
       )
     })
 
+    channel.bind("typing:stop", ({ userId }: { userId: string }) => {
+      const timer = typingTimersRef.current.get(userId)
+      if (timer) clearTimeout(timer)
+      typingTimersRef.current.delete(userId)
+      setTypingUserIds((prev) => {
+        const next = new Set(prev)
+        next.delete(userId)
+        return next
+      })
+    })
+
     return () => {
       channel.unbind_all()
-      for (const timer of typingTimersRef.current.values()) clearTimeout(timer)
-      typingTimersRef.current.clear()
+      const timers = typingTimersRef.current
+      for (const timer of timers.values()) clearTimeout(timer)
+      timers.clear()
       if (typeof window !== "undefined") {
         const pusherClient = getPusherClient()
         pusherClient.unsubscribe(channelName)
@@ -201,8 +218,13 @@ export default function ConversationClient({
 
   const { status, previousStatus } = usePusherConnection()
   const isReconnectedRef = useRef(false)
+  const initialConnectRef = useRef(true)
 
   useEffect(() => {
+    if (initialConnectRef.current) {
+      initialConnectRef.current = false
+      return
+    }
     if (previousStatus && previousStatus !== "connected" && status === "connected") {
       isReconnectedRef.current = true
     }
@@ -211,17 +233,18 @@ export default function ConversationClient({
   useEffect(() => {
     if (!isReconnectedRef.current || !conversationId) return
     isReconnectedRef.current = false
+    const abortController = new AbortController()
 
     const refetch = async () => {
       try {
         const [convRes, msgRes] = await Promise.all([
-          fetch(`/api/conversations/${conversationId}`),
-          fetch(`/api/messages/${conversationId}?take=50`),
+          fetch(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
+          fetch(`/api/messages/${conversationId}?take=50`, { signal: abortController.signal }),
         ])
         if (convRes.ok) {
           const conv = await convRes.json()
           setConversation(conv)
-          cache.setCached(conversationId, { conversation: conv })
+          setCached(conversationId, { conversation: conv })
         }
         if (msgRes.ok) {
           const data = await msgRes.json()
@@ -233,21 +256,27 @@ export default function ConversationClient({
               return [...incoming, ...prevNonTemp]
             })
             setNextCursor(data.nextCursor ?? null)
-            cache.setCached(conversationId, {
+            setCached(conversationId, {
               messages: data.messages,
               nextCursor: data.nextCursor ?? null,
             })
           }
         }
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException) return
         // Silent — will retry on next reconnect
       }
     }
     refetch()
-  }, [conversationId, status, cache])
+    return () => abortController.abort()
+  }, [conversationId, status, getCached, setCached])
 
-  const handleTypingStart = useCallback(() => {
-    fetch(`/api/conversations/${conversationId}/typing`, { method: "POST" }).catch(() => {})
+  const handleTypingAction = useCallback((action: "start" | "stop") => {
+    fetch(`/api/conversations/${conversationId}/typing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    }).catch(() => {})
   }, [conversationId])
 
   const handleSummarize = useCallback(async () => {
@@ -388,7 +417,7 @@ export default function ConversationClient({
         />
         <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
       </div>
-      <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingStart={handleTypingStart} />
+      <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingAction={handleTypingAction} />
     </div>
   )
 }

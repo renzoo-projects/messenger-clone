@@ -12,9 +12,10 @@ import useUserCache from "@/hooks/useUserCache"
 export default function UsersPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const cache = useUserCache()
-  const [users, setUsers] = useState<SafeUser[]>(() => cache.getCached() ?? [])
-  const [isLoading, setIsLoading] = useState(() => !cache.getCached())
+  const getCachedUsers = useUserCache((s) => s.getCached)
+  const setCachedUsers = useUserCache((s) => s.setCached)
+  const [users, setUsers] = useState<SafeUser[]>(() => getCachedUsers() ?? [])
+  const [isLoading, setIsLoading] = useState(() => !getCachedUsers())
   const [creating, setCreating] = useState<string | null>(null)
   const fetchedRef = useRef(false)
 
@@ -26,17 +27,19 @@ export default function UsersPage() {
 
     if (fetchedRef.current) return
     fetchedRef.current = true
+    const abortController = new AbortController()
 
     const fetchUsers = async () => {
       try {
-        const res = await fetch("/api/users")
+        const res = await fetch("/api/users", { signal: abortController.signal })
         if (!res.ok) throw new Error("Failed to load users")
         const data = await res.json()
         if (Array.isArray(data)) {
           setUsers(data)
-          cache.setCached(data)
+          setCachedUsers(data)
         }
-      } catch {
+      } catch (err) {
+        if (err instanceof DOMException) return
         toast.error("Failed to load users")
       } finally {
         setIsLoading(false)
@@ -44,13 +47,14 @@ export default function UsersPage() {
     }
 
     fetchUsers()
-  }, [session?.user?.id, cache])
+    return () => abortController.abort()
+  }, [session?.user?.id, setCachedUsers])
 
   useEffect(() => {
     if (!session?.user?.id && session !== undefined) {
       router.push("/")
     }
-  }, [session?.user?.id, router])
+  }, [session, session?.user?.id, router])
 
   const startConversation = async (userId: string) => {
     setCreating(userId)

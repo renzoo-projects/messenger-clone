@@ -43,6 +43,7 @@ const ConversationBox = memo(function ConversationBox({
   const rowRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (!showMenu) return
@@ -83,7 +84,7 @@ const ConversationBox = memo(function ConversationBox({
 
   const unreadCount = conversation.unreadCount || 0
 
-  const cache = useConversationCache()
+  const prefetchConversation = useConversationCache((s) => s.prefetchConversation)
 
   const handleClick = useCallback(() => {
     if (swiped) return
@@ -92,8 +93,8 @@ const ConversationBox = memo(function ConversationBox({
 
   const handleMouseEnter = useCallback(() => {
     router.prefetch(`/conversations/${conversation.id}`)
-    cache.prefetchConversation(conversation.id)
-  }, [router, conversation.id, cache])
+    prefetchConversation(conversation.id)
+  }, [router, conversation.id, prefetchConversation])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -218,8 +219,16 @@ const ConversationBox = memo(function ConversationBox({
     }
   }, [conversation.id, router])
 
+  const handleMouseLeave = useCallback(() => {
+    closeTimerRef.current = setTimeout(() => setShowMenu(false), 200)
+  }, [])
+
+  const handleMenuEnter = useCallback(() => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current)
+  }, [])
+
   return (
-    <div className="relative group" onMouseLeave={() => setShowMenu(false)}>
+    <div className="relative group" onMouseLeave={handleMouseLeave}>
       <div className="overflow-hidden">
         <div
           ref={rowRef}
@@ -302,7 +311,11 @@ const ConversationBox = memo(function ConversationBox({
             <HiEllipsisHorizontal className="h-5 w-5" />
           </button>
           {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+              <div
+                className="absolute right-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50"
+                onMouseEnter={handleMenuEnter}
+                onMouseLeave={() => setShowMenu(false)}
+              >
                 <button
                   onClick={handleMarkRead}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"

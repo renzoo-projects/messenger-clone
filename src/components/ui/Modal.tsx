@@ -7,9 +7,10 @@ interface ModalProps {
   onClose: () => void
   children: React.ReactNode
   variant?: "center" | "sheet"
+  titleId?: string
 }
 
-export default function Modal({ isOpen, onClose, children, variant = "center" }: ModalProps) {
+export default function Modal({ isOpen, onClose, children, variant = "center", titleId }: ModalProps) {
   const [render, setRender] = useState(false)
   const [active, setActive] = useState(false)
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -129,6 +130,7 @@ export default function Modal({ isOpen, onClose, children, variant = "center" }:
         className="fixed inset-0 z-50 flex items-end justify-center"
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
       >
         <div
           className={`absolute inset-0 bg-black/60 transition-opacity duration-200 ${active ? "opacity-100" : "opacity-0"}`}
@@ -161,6 +163,7 @@ export default function Modal({ isOpen, onClose, children, variant = "center" }:
       className="fixed inset-0 z-50 flex items-center justify-center"
       role="dialog"
       aria-modal="true"
+      aria-labelledby={titleId}
     >
       <div
         className={`absolute inset-0 bg-black/60 transition-opacity duration-200 ${active ? "opacity-100" : "opacity-0"}`}

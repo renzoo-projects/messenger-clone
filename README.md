@@ -7,7 +7,7 @@ A real-time chat application with AI-powered summaries, group conversations, and
 - **Real-time messaging** — Instant send/receive via Pusher Channels with optimistic sending (messages appear immediately)
 - **1-on-1 & group chats** — Create private conversations or multi-person groups with names and member management
 - **AI summaries** — Auto-triggered on unread conversations or one-click via the sparkles button (powered by Groq/Llama 3.3 70B)
-- **Multiple auth providers** — Sign in with Google, GitHub, or email/password via Auth.js v5
+- **Multiple auth providers** — Sign in with Google or email/password via Auth.js v5
 - **Image sharing** — Upload images inline via Cloudinary with preview before sending
 - **Dark mode** — Toggle between light and dark themes with system preference detection
 - **Typing indicators** — See when others are typing in real time
