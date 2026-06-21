@@ -1,19 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import toast from "react-hot-toast"
 import Avatar from "@/components/ui/Avatar"
 import Skeleton from "@/components/ui/Skeleton"
 import { SafeUser } from "@/types"
+import useUserCache from "@/hooks/useUserCache"
 
 export default function UsersPage() {
   const router = useRouter()
   const { data: session } = useSession()
-  const [users, setUsers] = useState<SafeUser[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const cache = useUserCache()
+  const [users, setUsers] = useState<SafeUser[]>(() => cache.getCached() ?? [])
+  const [isLoading, setIsLoading] = useState(() => !cache.getCached())
   const [creating, setCreating] = useState<string | null>(null)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -21,12 +24,18 @@ export default function UsersPage() {
       return
     }
 
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+
     const fetchUsers = async () => {
       try {
         const res = await fetch("/api/users")
         if (!res.ok) throw new Error("Failed to load users")
         const data = await res.json()
-        if (Array.isArray(data)) setUsers(data)
+        if (Array.isArray(data)) {
+          setUsers(data)
+          cache.setCached(data)
+        }
       } catch {
         toast.error("Failed to load users")
       } finally {
@@ -35,7 +44,7 @@ export default function UsersPage() {
     }
 
     fetchUsers()
-  }, [session?.user?.id])
+  }, [session?.user?.id, cache])
 
   useEffect(() => {
     if (!session?.user?.id && session !== undefined) {
