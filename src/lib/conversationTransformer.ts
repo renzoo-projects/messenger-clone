@@ -27,6 +27,7 @@ interface RawMessage {
   id: string
   body: string | null
   image: string | null
+  images?: string[]
   createdAt: string | Date
   sender: RawUser
   seenBy?: RawSeenMessage[]
@@ -74,10 +75,7 @@ export function transformConversation(conv: RawConversation): FullConversationTy
       body: msg.body,
       image: msg.image,
       images: msg.images || [],
-      createdAt:
-        typeof msg.createdAt === "string"
-          ? msg.createdAt
-          : msg.createdAt?.toISOString?.() || msg.createdAt,
+      createdAt: serializeDate(msg.createdAt),
       sender: msg.sender
         ? {
             id: msg.sender.id,
