@@ -1,54 +1,75 @@
 import { FullConversationType } from "@/types"
 
-interface RawConversationUser {
+interface RawUser {
   id: string
-  userId: string
-  conversationId: string
+  name: string | null
+  email: string | null
+  emailVerified: string | Date | null
+  image: string | null
   createdAt: string | Date
-  user: {
-    id: string
-    name: string | null
-    email: string | null
-    emailVerified: string | Date | null
-    image: string | null
-    createdAt: string | Date
-    updatedAt: string | Date
-  }
+  updatedAt: string | Date
 }
 
-export function transformConversation(conv: any): FullConversationType {
+interface RawConversationUser {
+  id?: string
+  userId: string
+  conversationId?: string
+  createdAt?: string | Date
+  user: RawUser
+}
+
+interface RawSeenMessage {
+  userId: string
+  user: RawUser
+}
+
+interface RawMessage {
+  id: string
+  body: string | null
+  image: string | null
+  createdAt: string | Date
+  sender: RawUser
+  seenBy?: RawSeenMessage[]
+}
+
+interface RawConversation {
+  id: string
+  name: string | null
+  isGroup: boolean
+  unreadCount?: number
+  createdAt: string | Date
+  updatedAt: string | Date
+  users?: RawConversationUser[]
+  messages?: RawMessage[]
+}
+
+function serializeDate(value: string | Date): string {
+  return typeof value === "string" ? value : value.toISOString()
+}
+
+function serializeNullableDate(value: string | Date | null): string | null {
+  if (!value) return null
+  return serializeDate(value)
+}
+
+export function transformConversation(conv: RawConversation): FullConversationType {
   return {
     id: conv.id,
     name: conv.name,
     isGroup: conv.isGroup,
     unreadCount: conv.unreadCount ?? 0,
-    createdAt:
-      typeof conv.createdAt === "string"
-        ? conv.createdAt
-        : conv.createdAt?.toISOString?.() || conv.createdAt,
-    updatedAt:
-      typeof conv.updatedAt === "string"
-        ? conv.updatedAt
-        : conv.updatedAt?.toISOString?.() || conv.updatedAt,
+    createdAt: serializeDate(conv.createdAt),
+    updatedAt: serializeDate(conv.updatedAt),
     users: (conv.users || []).map((cu: RawConversationUser) => ({
       id: cu.user.id,
       name: cu.user.name,
       email: cu.user.email,
-      emailVerified:
-        typeof cu.user.emailVerified === "string"
-          ? cu.user.emailVerified
-          : cu.user.emailVerified?.toISOString?.() || cu.user.emailVerified,
+      emailVerified: serializeNullableDate(cu.user.emailVerified),
       image: cu.user.image,
-      createdAt:
-        typeof cu.user.createdAt === "string"
-          ? cu.user.createdAt
-          : cu.user.createdAt?.toISOString?.() || cu.user.createdAt,
-      updatedAt:
-        typeof cu.user.updatedAt === "string"
-          ? cu.user.updatedAt
-          : cu.user.updatedAt?.toISOString?.() || cu.user.updatedAt,
+      createdAt: serializeDate(cu.user.createdAt),
+      updatedAt: serializeDate(cu.user.updatedAt),
     })),
-    messages: (conv.messages || []).map((msg: any) => ({
+    messages: (conv.messages || []).map((msg) => ({
       id: msg.id,
       body: msg.body,
       image: msg.image,
@@ -62,40 +83,22 @@ export function transformConversation(conv: any): FullConversationType {
             id: msg.sender.id,
             name: msg.sender.name,
             email: msg.sender.email,
-            emailVerified:
-              typeof msg.sender.emailVerified === "string"
-                ? msg.sender.emailVerified
-                : msg.sender.emailVerified?.toISOString?.() ||
-                  msg.sender.emailVerified,
+            emailVerified: serializeNullableDate(msg.sender.emailVerified),
             image: msg.sender.image,
-            createdAt:
-              typeof msg.sender.createdAt === "string"
-                ? msg.sender.createdAt
-                : msg.sender.createdAt?.toISOString?.() || msg.sender.createdAt,
-            updatedAt:
-              typeof msg.sender.updatedAt === "string"
-                ? msg.sender.updatedAt
-                : msg.sender.updatedAt?.toISOString?.() || msg.sender.updatedAt,
+            createdAt: serializeDate(msg.sender.createdAt),
+            updatedAt: serializeDate(msg.sender.updatedAt),
           }
         : null,
       seenBy: (msg.seenBy || []).map((sm: any) => ({
+        userId: sm.userId,
         user: {
           id: sm.user.id,
           name: sm.user.name,
           email: sm.user.email,
-          emailVerified:
-            typeof sm.user.emailVerified === "string"
-              ? sm.user.emailVerified
-              : sm.user.emailVerified?.toISOString?.() || sm.user.emailVerified,
+          emailVerified: serializeNullableDate(sm.user.emailVerified),
           image: sm.user.image,
-          createdAt:
-            typeof sm.user.createdAt === "string"
-              ? sm.user.createdAt
-              : sm.user.createdAt?.toISOString?.() || sm.user.createdAt,
-          updatedAt:
-            typeof sm.user.updatedAt === "string"
-              ? sm.user.updatedAt
-              : sm.user.updatedAt?.toISOString?.() || sm.user.updatedAt,
+          createdAt: serializeDate(sm.user.createdAt),
+          updatedAt: serializeDate(sm.user.updatedAt),
         },
       })),
     })),

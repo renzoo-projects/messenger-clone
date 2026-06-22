@@ -16,7 +16,11 @@ export interface FullMessageType {
   images: string[]
   createdAt: string
   sender: SafeUser | null
-  seenBy: { user: SafeUser }[]
+  seenBy: { userId: string; user: SafeUser }[]
+}
+
+export type OptimisticMessageType = FullMessageType & {
+  _status?: "sending"
 }
 
 export interface FullConversationType {
@@ -29,4 +33,3 @@ export interface FullConversationType {
   createdAt: string
   updatedAt: string
 }
-

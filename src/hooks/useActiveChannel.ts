@@ -5,6 +5,14 @@ import { useSession } from "next-auth/react"
 import { getPusherClient } from "@/lib/pusherClient"
 import useActiveList from "./useActiveList"
 
+interface PresenceMember {
+  id: string
+}
+
+interface PresenceMembers {
+  each: (callback: (member: PresenceMember) => void) => void
+}
+
 export default function useActiveChannel() {
   const { data: session } = useSession()
   const { add, remove, set } = useActiveList()
@@ -15,17 +23,17 @@ export default function useActiveChannel() {
     const pusherClient = getPusherClient()
     const channel = pusherClient.subscribe("presence-messenger")
 
-    channel.bind("pusher:subscription_succeeded", (members: any) => {
+    channel.bind("pusher:subscription_succeeded", (members: PresenceMembers) => {
       const memberIds: string[] = []
-      members.each((member: any) => memberIds.push(member.id))
+      members.each((member) => memberIds.push(member.id))
       set(memberIds)
     })
 
-    channel.bind("pusher:member_added", (member: any) => {
+    channel.bind("pusher:member_added", (member: PresenceMember) => {
       add(member.id)
     })
 
-    channel.bind("pusher:member_removed", (member: any) => {
+    channel.bind("pusher:member_removed", (member: PresenceMember) => {
       remove(member.id)
     })
 

@@ -1,12 +1,9 @@
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
 import "./globals.css"
 import AuthProvider from "@/components/providers/AuthProvider"
 import ThemeProvider from "@/components/providers/ThemeProvider"
 import ToastProvider from "@/components/providers/ToastProvider"
 import ActiveStatus from "@/components/ActiveStatus"
-
-const geist = Geist({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Messenger Clone",
@@ -30,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={geist.className} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="bg-white dark:bg-gray-950">
         <a
           href="#main-content"

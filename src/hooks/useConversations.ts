@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/types"
 import { getPusherClient } from "@/lib/pusherClient"
@@ -10,20 +10,17 @@ import useConversationCache from "@/hooks/useConversationCache"
 export function useConversations(initialData?: FullConversationType[]) {
   const { data: session } = useSession()
   const [conversations, setConversations] = useState<FullConversationType[]>(initialData || [])
-  const [isLoading, setIsLoading] = useState(!initialData)
-  const channelRef = useRef<any>(null)
+  const [isLoading, setIsLoading] = useState(!initialData && !!session?.user?.id)
   const userId = session?.user?.id
   const setCached = useConversationCache((s) => s.setCached)
   const getCached = useConversationCache((s) => s.getCached)
   const clearCached = useConversationCache((s) => s.clearCached)
 
   useEffect(() => {
-    if (initialData || !userId) {
-      setIsLoading(false)
-      return
-    }
+    if (initialData || !userId) return
 
     const fetchConversations = async () => {
+      setIsLoading(true)
       try {
         const res = await fetch("/api/conversations")
         if (!res.ok) throw new Error("Failed to fetch")
@@ -45,7 +42,6 @@ export function useConversations(initialData?: FullConversationType[]) {
     const pusherClient = getPusherClient()
     const channelName = `private-${userId}`
     const channel = pusherClient.subscribe(channelName)
-    channelRef.current = channel
 
     channel.bind("conversation:new", (conversation: FullConversationType) => {
       setConversations((prev) => {
@@ -60,7 +56,7 @@ export function useConversations(initialData?: FullConversationType[]) {
       })
     })
 
-    channel.bind("conversation:update", (data: any) => {
+    channel.bind("conversation:update", (data: FullConversationType | { id: string; unreadCount?: number }) => {
       setConversations((prev) =>
         prev.map((c) => {
           if (c.id !== data.id) return c
@@ -87,41 +83,23 @@ export function useConversations(initialData?: FullConversationType[]) {
     return () => {
       channel.unbind_all()
       pusherClient.unsubscribe(channelName)
-      channelRef.current = null
     }
   }, [userId, setCached, getCached, clearCached])
 
-  const { status, previousStatus } = usePusherConnection()
-  const isReconnectedRef = useRef(false)
-  const initialConnectRef = useRef(true)
+  const reconnectCount = usePusherConnection((s) => s.reconnectCount)
 
   useEffect(() => {
-    if (initialConnectRef.current) {
-      initialConnectRef.current = false
-      return
+    const refetch = async () => {
+      try {
+        const res = await fetch("/api/conversations")
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) setConversations(data)
+        }
+      } catch {}
     }
-    if (previousStatus && previousStatus !== "connected" && status === "connected") {
-      isReconnectedRef.current = true
-    }
-  }, [status, previousStatus])
-
-  const refetchConversations = useCallback(async () => {
-    try {
-      const res = await fetch("/api/conversations")
-      if (res.ok) {
-        const data = await res.json()
-        if (Array.isArray(data)) setConversations(data)
-      }
-    } catch {
-      // Silent — will retry on next reconnect
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!isReconnectedRef.current) return
-    isReconnectedRef.current = false
-    refetchConversations()
-  }, [status, refetchConversations])
+    refetch()
+  }, [reconnectCount])
 
   return { conversations, isLoading }
 }

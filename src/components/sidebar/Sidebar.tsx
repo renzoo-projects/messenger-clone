@@ -8,8 +8,7 @@ import Avatar from "@/components/ui/Avatar"
 import useSettingsModal from "@/hooks/useSettingsModal"
 import useLogoutModal from "@/hooks/useLogoutModal"
 import LogoutModal from "./LogoutModal"
-import { HiUsers, HiArrowRightOnRectangle, HiCog6Tooth, HiOutlineSun, HiOutlineMoon } from "react-icons/hi2"
-import { HiChatBubbleLeftRight } from "react-icons/hi2"
+import { HiUsers, HiArrowRightOnRectangle, HiCog6Tooth, HiOutlineSun, HiOutlineMoon, HiChatBubbleLeftRight } from "react-icons/hi2"
 import { useTheme } from "@/hooks/useTheme"
 
 export default function Sidebar() {

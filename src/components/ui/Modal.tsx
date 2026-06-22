@@ -23,11 +23,14 @@ export default function Modal({ isOpen, onClose, children, variant = "center", t
   useEffect(() => {
     if (isOpen) {
       previousFocusRef.current = document.activeElement as HTMLElement
-      setRender(true)
-      requestAnimationFrame(() => setActive(true))
-    } else {
-      setActive(false)
       const timer = setTimeout(() => {
+        setRender(true)
+        requestAnimationFrame(() => setActive(true))
+      }, 0)
+      return () => clearTimeout(timer)
+    } else {
+      const timer = setTimeout(() => {
+        setActive(false)
         setRender(false)
         dragCurrentY.current = 0
       }, 200)

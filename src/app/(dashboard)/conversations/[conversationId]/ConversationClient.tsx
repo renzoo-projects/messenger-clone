@@ -18,7 +18,7 @@ import useConversationCache from "@/hooks/useConversationCache"
 import { getPusherClient } from "@/lib/pusherClient"
 import usePusherConnection from "@/lib/pusherConnectionStore"
 import { hapticLight } from "@/lib/haptic"
-import { FullConversationType, FullMessageType } from "@/types"
+import { FullConversationType, FullMessageType, OptimisticMessageType, SafeUser } from "@/types"
 
 interface ConversationClientProps {
   conversationId: string
@@ -49,7 +49,6 @@ export default function ConversationClient({
   const [loading, setLoading] = useState(!cached)
   const [loadingMore, setLoadingMore] = useState(false)
   const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set())
-  const channelRef = useRef<any>(null)
   const currentUserIdRef = useRef(session?.user?.id)
   const typingTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
@@ -142,7 +141,6 @@ export default function ConversationClient({
     const pusherClient = getPusherClient()
     const channelName = `private-conversation-${conversationId}`
     const channel = pusherClient.subscribe(channelName)
-    channelRef.current = channel
 
     channel.bind("conversation:update", (conv: FullConversationType) => {
       setConversation(conv)
@@ -156,7 +154,7 @@ export default function ConversationClient({
       })
     })
 
-    channel.bind("messages:seen", ({ messageIds, userId, user }: { messageIds: string[]; userId: string; user: any }) => {
+    channel.bind("messages:seen", ({ messageIds, userId, user }: { messageIds: string[]; userId: string; user: SafeUser }) => {
       setMessages((prev) =>
         prev.map((m) =>
           messageIds.includes(m.id)
@@ -212,27 +210,13 @@ export default function ConversationClient({
         const pusherClient = getPusherClient()
         pusherClient.unsubscribe(channelName)
       }
-      channelRef.current = null
     }
   }, [conversationId, router])
 
-  const { status, previousStatus } = usePusherConnection()
-  const isReconnectedRef = useRef(false)
-  const initialConnectRef = useRef(true)
+  const reconnectCount = usePusherConnection((s) => s.reconnectCount)
 
   useEffect(() => {
-    if (initialConnectRef.current) {
-      initialConnectRef.current = false
-      return
-    }
-    if (previousStatus && previousStatus !== "connected" && status === "connected") {
-      isReconnectedRef.current = true
-    }
-  }, [status, previousStatus])
-
-  useEffect(() => {
-    if (!isReconnectedRef.current || !conversationId) return
-    isReconnectedRef.current = false
+    if (!conversationId) return
     const abortController = new AbortController()
 
     const refetch = async () => {
@@ -264,12 +248,11 @@ export default function ConversationClient({
         }
       } catch (err) {
         if (err instanceof DOMException) return
-        // Silent — will retry on next reconnect
       }
     }
     refetch()
     return () => abortController.abort()
-  }, [conversationId, status, getCached, setCached])
+  }, [conversationId, reconnectCount, setCached])
 
   const handleTypingAction = useCallback((action: "start" | "stop") => {
     fetch(`/api/conversations/${conversationId}/typing`, {
@@ -304,7 +287,7 @@ export default function ConversationClient({
   const handleSendMessage = useCallback(async (body: string, images?: string[]) => {
     const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
-    const tempMessage: FullMessageType & { _status?: string } = {
+    const tempMessage: OptimisticMessageType = {
       id: tempId,
       body: body || null,
       image: images?.[0] || null,
@@ -322,7 +305,7 @@ export default function ConversationClient({
       seenBy: [],
       _status: "sending",
     }
-    setMessages((prev) => [...prev, tempMessage as FullMessageType])
+    setMessages((prev) => [...prev, tempMessage])
 
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
@@ -338,7 +321,7 @@ export default function ConversationClient({
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
       toast.error("Failed to send message")
     }
-  }, [conversationId, session?.user?.id, session?.user?.name, session?.user?.image, session?.user?.email])
+  }, [conversationId, session?.user])
 
   const handleEngage = useCallback(async () => {
     if (!conversationId) return

@@ -4,7 +4,7 @@ import { useRef, useEffect, useMemo, useCallback, memo } from "react"
 import { useSession } from "next-auth/react"
 import Image from "next/image"
 import clsx from "clsx"
-import { FullMessageType } from "@/types"
+import { FullMessageType, OptimisticMessageType } from "@/types"
 import { format, isToday, isYesterday } from "date-fns"
 import Avatar from "@/components/ui/Avatar"
 import useActiveList from "@/hooks/useActiveList"
@@ -256,15 +256,15 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                       <p className="text-[10px] text-gray-500 dark:text-gray-400">
                         {format(new Date(message.createdAt), "p")}
                       </p>
-                      {isOwn && (message as any)._status === "sending" && (
+                      {isOwn && (message as OptimisticMessageType)._status === "sending" && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">Sending...</span>
                       )}
-                      {isOwn && !(message as any)._status && seenText && (
+                      {isOwn && !(message as OptimisticMessageType)._status && seenText && (
                           <span className="text-[10px] text-blue-500 font-medium" title={seenText}>
                           ✓✓
                         </span>
                       )}
-                      {isOwn && !(message as any)._status && !seenText && (
+                      {isOwn && !(message as OptimisticMessageType)._status && !seenText && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500">✓</span>
                       )}
                     </div>
