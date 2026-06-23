@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    if (!rateLimit(`summarize:${session.user.id}`, 5, 60_000)) {
+    if (!(await rateLimit(`summarize:${session.user.id}`, 5, 60_000))) {
       return NextResponse.json(
         { error: "Too many requests. Please wait before summarizing again." },
         { status: 429 }
@@ -57,16 +57,15 @@ export async function POST(
     const messagesText = reversedMessages
       .map(
         (msg, i) =>
-          `${i + 1}. ${msg.sender.name}: ${msg.body}`
+          `${i + 1}. ${msg.sender.name ?? "Unknown"}: ${msg.body ?? ""}`
       )
       .join("\n")
 
     const systemPrompt =
-      "Summarize the following chat messages in 1-2 concise paragraphs. " +
-      "Write in natural, flowing prose that captures the key topics, decisions, " +
-      "and questions discussed. " +
-      "Focus on decisions, questions, tasks, and key information. " +
-      "Keep it brief — 3-6 sentences total."
+      "You're a helpful assistant summarizing a group chat conversation. " +
+      "Write a short, friendly summary in 3-6 sentences — like you're catching up a friend who missed the chat. " +
+      "Cover the main topics, any decisions made, questions asked, and things people need to follow up on. " +
+      "Keep it natural and easy to read, not bullet points or formal language."
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 15000)
@@ -87,7 +86,7 @@ export async function POST(
               { role: "system", content: systemPrompt },
               {
                 role: "user",
-                content: `Summarize these ${recentMessages.length} messages:\n\n${messagesText}`,
+                content: `Summarize these ${reversedMessages.length} messages:\n\n${messagesText}`,
               },
             ],
             temperature: 0.3,
@@ -108,14 +107,27 @@ export async function POST(
       const groqData = await groqResponse.json()
       const summary = groqData.choices?.[0]?.message?.content?.trim() || ""
 
+      if (!summary) {
+        return NextResponse.json(
+          { error: "Summary could not be generated" },
+          { status: 502 }
+        )
+      }
+
       return NextResponse.json({
         summary,
-        messageCount: recentMessages.length,
+        messageCount: reversedMessages.length,
       })
     } finally {
       clearTimeout(timeout)
     }
   } catch (error) {
+    if (error instanceof Error && error.name === "AbortError") {
+      return NextResponse.json(
+        { error: "Summary request timed out. Try again." },
+        { status: 504 }
+      )
+    }
     console.error("Summarize error:", error)
     return NextResponse.json(
       { error: "Failed to generate summary" },
