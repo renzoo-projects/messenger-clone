@@ -1,6 +1,7 @@
 "use client"
 
 import PusherClient from "pusher-js"
+import usePusherConnection from "./pusherConnectionStore"
 
 let pusherInstance: PusherClient | null = null
 
@@ -18,6 +19,13 @@ export function getPusherClient(): PusherClient {
         forceTLS: true,
       }
     )
+
+    pusherInstance.connection.bind("state_change", (states: { current: string }) => {
+      const status = states.current === "connected" ? "connected"
+        : states.current === "connecting" ? "connecting"
+        : "disconnected"
+      usePusherConnection.getState().setStatus(status)
+    })
   }
 
   return pusherInstance

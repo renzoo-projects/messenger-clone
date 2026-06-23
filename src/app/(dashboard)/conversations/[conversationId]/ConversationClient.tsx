@@ -34,6 +34,7 @@ export default function ConversationClient({
   const { setConversationId } = useConversation()
   const getCached = useConversationCache((s) => s.getCached)
   const setCached = useConversationCache((s) => s.setCached)
+  const clearCached = useConversationCache((s) => s.clearCached)
   const cached = getCached(conversationId)
   const [conversation, setConversation] = useState<FullConversationType | null>(
     cached?.conversation ?? null
@@ -118,6 +119,11 @@ export default function ConversationClient({
         })
       } catch (err) {
         if (axios.isCancel(err)) return
+        if (axios.isAxiosError(err) && err.response?.status === 403) {
+          clearCached(conversationId)
+          router.push("/conversations")
+          return
+        }
         setLoading(false)
       }
     }
