@@ -105,21 +105,22 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
     const messageText = text.trim()
     const currentAttachments = attachments
 
-    setText("")
-    clearAttachments()
-
     try {
-      const uploadPromises = currentAttachments.map(async (att) => {
-        const formData = new FormData()
-        formData.append("file", att.file)
-        const { data } = await api.post("/api/upload", formData)
-        if (!data.url) throw new Error("No URL returned")
-        return data.url
-      })
-
-      const imageUrls = await Promise.all(uploadPromises)
+      let imageUrls: string[] = []
+      if (currentAttachments.length > 0) {
+        const uploadPromises = currentAttachments.map(async (att) => {
+          const formData = new FormData()
+          formData.append("file", att.file)
+          const { data } = await api.post("/api/upload", formData)
+          if (!data.url) throw new Error("No URL returned")
+          return data.url
+        })
+        imageUrls = await Promise.all(uploadPromises)
+      }
 
       await onSend(messageText, imageUrls.length > 0 ? imageUrls : undefined)
+      setText("")
+      clearAttachments()
       if (onTypingAction) onTypingAction("stop")
     } catch {
       toast.error("Failed to send message")

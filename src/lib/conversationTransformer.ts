@@ -1,4 +1,5 @@
 import { FullConversationType } from "@/types"
+import { serializeDate, serializeNullableDate } from "@/lib/dates"
 
 interface RawUser {
   id: string
@@ -44,15 +45,6 @@ interface RawConversation {
   messages?: RawMessage[]
 }
 
-function serializeDate(value: string | Date): string {
-  return typeof value === "string" ? value : value.toISOString()
-}
-
-function serializeNullableDate(value: string | Date | null): string | null {
-  if (!value) return null
-  return serializeDate(value)
-}
-
 export function transformConversation(conv: RawConversation): FullConversationType {
   return {
     id: conv.id,
@@ -87,7 +79,7 @@ export function transformConversation(conv: RawConversation): FullConversationTy
             updatedAt: serializeDate(msg.sender.updatedAt),
           }
         : null,
-      seenBy: (msg.seenBy || []).map((sm: any) => ({
+      seenBy: (msg.seenBy || []).map((sm: RawSeenMessage) => ({
         userId: sm.userId,
         user: {
           id: sm.user.id,

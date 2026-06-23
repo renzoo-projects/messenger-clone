@@ -122,3 +122,10 @@ model SeenMessage {
   @@index([userId])
 }
 
+model RateLimit {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  key     String   @unique
+  count   Int
+  resetAt DateTime
+}
+

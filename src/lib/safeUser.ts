@@ -1,10 +1,6 @@
 import { User } from "@prisma/client"
 import { SafeUser } from "@/types"
-
-function toISO(d: Date | string | null | undefined): string | null {
-  if (!d) return null
-  return typeof d === "string" ? d : d.toISOString()
-}
+import { toISO } from "@/lib/dates"
 
 export function sanitizeUser(user: User): SafeUser {
   return {

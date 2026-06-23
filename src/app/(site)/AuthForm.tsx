@@ -13,7 +13,7 @@ type FormData = {
   password: string
 }
 
-export default function AuthForm() {
+export default function AuthForm({ showGoogleOAuth = true }: { showGoogleOAuth?: boolean }) {
   const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
@@ -167,6 +167,7 @@ export default function AuthForm() {
               </div>
             </div>
 
+            {showGoogleOAuth && (
             <div className="mt-6">
               <button
                 onClick={() => socialLogin("google")}
@@ -182,6 +183,7 @@ export default function AuthForm() {
                 Google
               </button>
             </div>
+            )}
           </div>
 
           <div className="mt-6 text-center text-sm text-gray-500">

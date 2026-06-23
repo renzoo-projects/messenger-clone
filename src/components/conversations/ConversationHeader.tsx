@@ -42,8 +42,8 @@ const ConversationHeader = memo(function ConversationHeader({
         if (user) typingNames.push(user.name || "Someone")
       }
       if (typingNames.length === 1) return `${typingNames[0]} is typing...`
-      if (typingNames.length > 1) return `${typingNames[0]} and ${typingNames.length - 1} other${typingNames.length > 2 ? "s" : ""} typing...`
-      return "Someone is typing..."
+      if (typingNames.length >= 2) return `${typingNames.length} people typing...`
+      return typingNames.length === 0 ? null : "Someone is typing..."
     }
     if (conversation.isGroup) {
       return `${conversation.users?.length || 0} members`

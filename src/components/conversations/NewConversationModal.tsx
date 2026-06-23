@@ -7,6 +7,7 @@ import dynamic from "next/dynamic"
 import toast from "react-hot-toast"
 import { api } from "@/lib/axios"
 import Modal from "@/components/ui/Modal"
+import axios from "axios"
 
 const Select = dynamic(() => import("react-select"), { ssr: false })
 import Button from "@/components/ui/Button"
@@ -31,16 +32,12 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
     if (!isOpen) return
     const abortController = new AbortController()
 
-    fetch("/api/users", { signal: abortController.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load users")
-        return res.json()
-      })
-      .then((data) => {
+    api.get("/api/users", { signal: abortController.signal })
+      .then(({ data }) => {
         if (Array.isArray(data)) setUsers(data)
       })
       .catch((err) => {
-        if (err instanceof DOMException) return
+        if (axios.isCancel(err)) return
         toast.error("Failed to load users")
       })
     return () => abortController.abort()

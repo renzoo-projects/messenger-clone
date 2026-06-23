@@ -60,10 +60,11 @@ export default function ConversationClient({
 
   useEffect(() => {
     setConversationId(conversationId)
+    setSummary(null)
+    setSummaryMessageCount(0)
+    setSummaryError(null)
     return () => {
       setConversationId(null)
-      setSummary(null)
-      setSummaryMessageCount(0)
     }
   }, [conversationId, setConversationId])
 
@@ -82,8 +83,9 @@ export default function ConversationClient({
 
     const fetchData = async () => {
       try {
+        let convRes, msgRes
         try {
-          var [convRes, msgRes] = await Promise.all([
+          [convRes, msgRes] = await Promise.all([
             api.get(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
             api.get(`/api/messages/${conversationId}?take=25`, { signal: abortController.signal }),
           ])

@@ -9,5 +9,6 @@ export default async function Home() {
     redirect("/conversations")
   }
 
-  return <AuthForm />
+  const showGoogleOAuth = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+  return <AuthForm showGoogleOAuth={showGoogleOAuth} />
 }

@@ -107,6 +107,8 @@ const ConversationBox = memo(function ConversationBox({
   const handleDelete = useCallback(async (e: React.MouseEvent) => {
     e.stopPropagation()
     setShowMenu(false)
+    const confirmed = window.confirm("Delete this conversation? This cannot be undone.")
+    if (!confirmed) return
     try {
       await api.delete(`/api/conversations/${conversation.id}`)
       router.push("/conversations")
@@ -120,6 +122,7 @@ const ConversationBox = memo(function ConversationBox({
     setShowMenu(false)
     try {
       await api.post(`/api/conversations/${conversation.id}/seen`)
+      toast.success("Marked as read")
     } catch {
       toast.error("Failed to mark as read")
     }
@@ -195,12 +198,17 @@ const ConversationBox = memo(function ConversationBox({
   }, [])
 
   const handleSwipeDelete = useCallback(async () => {
+    const confirmed = window.confirm("Delete this conversation? This cannot be undone.")
+    if (!confirmed) {
+      setSwiped(false)
+      if (rowRef.current) {
+        rowRef.current.style.transform = ""
+      }
+      return
+    }
     try {
       hapticLight()
-      const res = await fetch(`/api/conversations/${conversation.id}`, {
-        method: "DELETE",
-      })
-      if (!res.ok) throw new Error("Failed to delete")
+      await api.delete(`/api/conversations/${conversation.id}`)
       router.push("/conversations")
     } catch {
       toast.error("Failed to delete conversation")
@@ -296,7 +304,7 @@ const ConversationBox = memo(function ConversationBox({
               e.stopPropagation()
               setShowMenu((prev) => !prev)
             }}
-            className="opacity-0 group-hover:opacity-100 flex items-center justify-center h-11 w-11 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
+            className="opacity-0 group-hover:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center justify-center h-11 w-11 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
             aria-label="More options"
             aria-expanded={showMenu}
           >
@@ -308,6 +316,7 @@ const ConversationBox = memo(function ConversationBox({
                 onMouseEnter={handleMenuEnter}
                 onMouseLeave={() => setShowMenu(false)}
               >
+                {unreadCount > 0 && (
                 <button
                   onClick={handleMarkRead}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
@@ -315,6 +324,8 @@ const ConversationBox = memo(function ConversationBox({
                   <HiOutlineEnvelopeOpen className="h-4 w-4" />
                   Mark as read
                 </button>
+                )}
+                {unreadCount === 0 && (
                 <button
                   onClick={handleMarkUnread}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
@@ -322,6 +333,7 @@ const ConversationBox = memo(function ConversationBox({
                   <HiOutlineEnvelope className="h-4 w-4" />
                   Mark as unread
                 </button>
+                )}
                 <button
                   onClick={handleDelete}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"

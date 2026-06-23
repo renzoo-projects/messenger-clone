@@ -5,6 +5,7 @@ import { format } from "date-fns"
 import useProfileDrawer from "@/hooks/useProfileDrawer"
 import Avatar from "@/components/ui/Avatar"
 import Modal from "@/components/ui/Modal"
+import { HiXMark } from "react-icons/hi2"
 
 export default function ProfileDrawer() {
   const { isOpen, onClose, user } = useProfileDrawer()
@@ -23,9 +24,7 @@ export default function ProfileDrawer() {
           className="flex items-center justify-center h-11 w-11 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
           aria-label="Close profile"
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <HiXMark className="h-5 w-5" />
         </button>
       </div>
 
