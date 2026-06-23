@@ -284,11 +284,12 @@ export default function ConversationClient({
   const handleSendMessage = useCallback(async (body: string, files?: File[]) => {
     const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
+    const localUrls = files?.map((f) => URL.createObjectURL(f)) || []
     const tempMessage: OptimisticMessageType = {
       id: tempId,
       body: body || null,
       image: null,
-      images: [],
+      images: localUrls,
       createdAt: new Date().toISOString(),
       sender: {
         id: currentUserId,
@@ -321,10 +322,18 @@ export default function ConversationClient({
         message: body,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       })
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)))
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === tempId
+            ? { ...data, images: [...(data.images || []), ...localUrls] }
+            : m
+        )
+      )
       hapticLight()
+      requestAnimationFrame(() => localUrls.forEach((u) => URL.revokeObjectURL(u)))
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
+      localUrls.forEach((u) => URL.revokeObjectURL(u))
       toast.error("Failed to send message")
     }
   }, [conversationId, session?.user])
