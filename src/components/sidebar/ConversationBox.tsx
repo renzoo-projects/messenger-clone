@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
 import { api } from "@/lib/axios"
-import axios from "axios"
 import Avatar from "@/components/ui/Avatar"
 import GroupAvatar from "@/components/ui/GroupAvatar"
 import { FullConversationType } from "@/types"
@@ -134,12 +133,8 @@ const ConversationBox = memo(function ConversationBox({
     setShowMenu(false)
     try {
       await api.post(`/api/conversations/${conversation.id}/unread`)
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        toast.error(error.response.data?.error || "Cannot mark as unread")
-      } else {
-        toast.error("Failed to mark as unread")
-      }
+    } catch {
+      toast.error("Failed to mark as unread")
     }
   }, [conversation.id])
 
@@ -246,21 +241,19 @@ const ConversationBox = memo(function ConversationBox({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           className={clsx(
-            "w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.98] touch-pan-y",
+            "w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors active:scale-[0.98] touch-pan-y relative",
             selected && "bg-blue-50 dark:bg-blue-950/20"
           )}
           style={{ transition: swiped ? "none" : undefined }}
         >
-          <div className="relative shrink-0">
-            {conversation.isGroup ? (
-              <GroupAvatar users={conversation.users} />
-            ) : (
-              <Avatar user={otherUser} />
-            )}
-            {unreadCount > 0 && (
-              <span className="absolute -left-0.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white dark:ring-gray-950" />
-            )}
-          </div>
+          {unreadCount > 0 && (
+            <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500" />
+          )}
+          {conversation.isGroup ? (
+            <GroupAvatar users={conversation.users} />
+          ) : (
+            <Avatar user={otherUser} />
+          )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p

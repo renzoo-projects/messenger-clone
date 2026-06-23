@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import toast from "react-hot-toast"
@@ -19,17 +19,15 @@ export default function UsersPage() {
   const [users, setUsers] = useState<SafeUser[]>(() => getCachedUsers() ?? [])
   const [isLoading, setIsLoading] = useState(() => !getCachedUsers())
   const [creating, setCreating] = useState<string | null>(null)
-  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    if (!session?.user?.id) {
-      setIsLoading(false)
-      return
-    }
+    if (!session?.user?.id) return
 
-    if (fetchedRef.current) return
-    fetchedRef.current = true
+    const cached = getCachedUsers()
+    if (users.length > 0 && cached) return
+
     const abortController = new AbortController()
+    setIsLoading(true)
 
     const fetchUsers = async () => {
       try {
@@ -48,7 +46,7 @@ export default function UsersPage() {
 
     fetchUsers()
     return () => abortController.abort()
-  }, [session?.user?.id, setCachedUsers])
+  }, [session?.user?.id, setCachedUsers, users.length, getCachedUsers])
 
   useEffect(() => {
     if (!session?.user?.id && session !== undefined) {
