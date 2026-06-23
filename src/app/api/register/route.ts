@@ -8,7 +8,7 @@ import { rateLimit } from "@/lib/rateLimit"
 export async function POST(request: Request) {
   try {
     const ip = request.headers.get("x-forwarded-for") ?? "unknown"
-    if (!rateLimit(`register:${ip}`, 5, 60_000)) {
+    if (!(await rateLimit(`register:${ip}`, 5, 60_000))) {
       return NextResponse.json(
         { error: "Too many requests" },
         { status: 429 }
