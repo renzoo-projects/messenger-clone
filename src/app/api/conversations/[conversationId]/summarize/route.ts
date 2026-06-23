@@ -122,7 +122,7 @@ export async function POST(
       clearTimeout(timeout)
     }
   } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
+    if ((error as Error)?.name === "AbortError") {
       return NextResponse.json(
         { error: "Summary request timed out. Try again." },
         { status: 504 }

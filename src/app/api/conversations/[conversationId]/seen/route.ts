@@ -40,26 +40,28 @@ export async function POST(
         select: { id: true, name: true, image: true, email: true, emailVerified: true, createdAt: true, updatedAt: true },
       })
 
-      try {
-        await pusherServer.trigger(
-          `private-conversation-${conversationId}`,
-          "messages:seen",
-          {
-            messageIds: messageIds.map((m) => m.id),
-            userId: currentUserId,
-            user: {
-              id: currentUserData!.id,
-              name: currentUserData!.name,
-              image: currentUserData!.image,
-              email: currentUserData!.email,
-              emailVerified: currentUserData!.emailVerified?.toISOString?.() ?? null,
-              createdAt: currentUserData!.createdAt.toISOString(),
-              updatedAt: currentUserData!.updatedAt.toISOString(),
-            },
-          }
-        )
-      } catch (e) {
-        console.warn("PUSHER_SEEN_FAILED", e)
+      if (currentUserData) {
+        try {
+          await pusherServer.trigger(
+            `private-conversation-${conversationId}`,
+            "messages:seen",
+            {
+              messageIds: messageIds.map((m) => m.id),
+              userId: currentUserId,
+              user: {
+                id: currentUserData.id,
+                name: currentUserData.name,
+                image: currentUserData.image,
+                email: currentUserData.email,
+                emailVerified: currentUserData.emailVerified?.toISOString?.() ?? null,
+                createdAt: currentUserData.createdAt.toISOString(),
+                updatedAt: currentUserData.updatedAt.toISOString(),
+              },
+            }
+          )
+        } catch (e) {
+          console.warn("PUSHER_SEEN_FAILED", e)
+        }
       }
     }
 

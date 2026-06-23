@@ -33,6 +33,6 @@ export const removeMemberSchema = z.object({
 
 export const settingsSchema = z.object({
   name: z.string().min(1).max(100),
-  image: z.string().optional().nullable(),
+  image: z.string().url().optional().nullable(),
 })
 
