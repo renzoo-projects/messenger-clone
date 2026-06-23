@@ -204,7 +204,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                                 <img
                                   src={img}
                                   alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
-                                  className="w-full h-auto rounded-xl"
+                                  className="w-full h-auto rounded-xl transition-opacity duration-200"
                                 />
                                 {isLast && (
                                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
