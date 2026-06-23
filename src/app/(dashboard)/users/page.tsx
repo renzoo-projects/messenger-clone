@@ -6,6 +6,8 @@ import { useSession } from "next-auth/react"
 import toast from "react-hot-toast"
 import Avatar from "@/components/ui/Avatar"
 import Skeleton from "@/components/ui/Skeleton"
+import axios from "axios"
+import { api } from "@/lib/axios"
 import { SafeUser } from "@/types"
 import useUserCache from "@/hooks/useUserCache"
 
@@ -31,15 +33,13 @@ export default function UsersPage() {
 
     const fetchUsers = async () => {
       try {
-        const res = await fetch("/api/users", { signal: abortController.signal })
-        if (!res.ok) throw new Error("Failed to load users")
-        const data = await res.json()
+        const { data } = await api.get("/api/users", { signal: abortController.signal })
         if (Array.isArray(data)) {
           setUsers(data)
           setCachedUsers(data)
         }
       } catch (err) {
-        if (err instanceof DOMException) return
+        if (axios.isCancel(err)) return
         toast.error("Failed to load users")
       } finally {
         setIsLoading(false)
@@ -59,15 +59,7 @@ export default function UsersPage() {
   const startConversation = async (userId: string) => {
     setCreating(userId)
     try {
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      })
-
-      if (!res.ok) throw new Error("Failed")
-
-      const conversation = await res.json()
+      const { data: conversation } = await api.post("/api/conversations", { userId })
       router.push(`/conversations/${conversation.id}`)
     } catch {
       toast.error("Failed to start conversation")

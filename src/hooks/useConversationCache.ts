@@ -1,6 +1,7 @@
 "use client"
 
 import { create } from "zustand"
+import { api } from "@/lib/axios"
 import { FullConversationType, FullMessageType } from "@/types"
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -50,14 +51,11 @@ const useConversationCache = create<ConversationCacheState>((set, get) => ({
 
     try {
       const [convRes, msgRes] = await Promise.all([
-        fetch(`/api/conversations/${id}`),
-        fetch(`/api/messages/${id}?take=25`),
+        api.get(`/api/conversations/${id}`),
+        api.get(`/api/messages/${id}?take=25`),
       ])
-      if (!convRes.ok || !msgRes.ok) return
-      const [conversation, msgData] = await Promise.all([
-        convRes.json(),
-        msgRes.json(),
-      ])
+      const conversation = convRes.data
+      const msgData = msgRes.data
       set((state) => ({
         cache: {
           ...state.cache,

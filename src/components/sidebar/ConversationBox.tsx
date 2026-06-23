@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState, useEffect, memo } from "react"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
+import { api } from "@/lib/axios"
 import Avatar from "@/components/ui/Avatar"
 import GroupAvatar from "@/components/ui/GroupAvatar"
 import { FullConversationType } from "@/types"
@@ -107,10 +108,7 @@ const ConversationBox = memo(function ConversationBox({
     e.stopPropagation()
     setShowMenu(false)
     try {
-      const res = await fetch(`/api/conversations/${conversation.id}`, {
-        method: "DELETE",
-      })
-      if (!res.ok) throw new Error("Failed to delete")
+      await api.delete(`/api/conversations/${conversation.id}`)
       router.push("/conversations")
     } catch {
       toast.error("Failed to delete conversation")
@@ -121,10 +119,7 @@ const ConversationBox = memo(function ConversationBox({
     e.stopPropagation()
     setShowMenu(false)
     try {
-      const res = await fetch(`/api/conversations/${conversation.id}/seen`, {
-        method: "POST",
-      })
-      if (!res.ok) throw new Error("Failed to mark read")
+      await api.post(`/api/conversations/${conversation.id}/seen`)
     } catch {
       toast.error("Failed to mark as read")
     }
@@ -134,10 +129,7 @@ const ConversationBox = memo(function ConversationBox({
     e.stopPropagation()
     setShowMenu(false)
     try {
-      const res = await fetch(`/api/conversations/${conversation.id}/unread`, {
-        method: "POST",
-      })
-      if (!res.ok) throw new Error("Failed to mark unread")
+      await api.post(`/api/conversations/${conversation.id}/unread`)
     } catch {
       toast.error("Failed to mark as unread")
     }

@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import toast from "react-hot-toast"
+import { api } from "@/lib/axios"
 
 type FormData = {
   name: string
@@ -42,27 +43,16 @@ export default function AuthForm() {
         router.push("/conversations")
         router.refresh()
       } else {
-        const res = await fetch("/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+        await api.post("/api/register", data)
+        toast.success("Account created!")
+        const result = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
         })
-
-        if (res.ok) {
-          toast.success("Account created!")
-          const result = await signIn("credentials", {
-            email: data.email,
-            password: data.password,
-            redirect: false,
-          })
-
-          if (result?.ok) {
-            router.push("/conversations")
-            router.refresh()
-          }
-        } else {
-          const err = await res.json()
-          toast.error(err.error || "Something went wrong")
+        if (result?.ok) {
+          router.push("/conversations")
+          router.refresh()
         }
       }
     } catch {

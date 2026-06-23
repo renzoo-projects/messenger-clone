@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import axios from "axios"
 import toast from "react-hot-toast"
 import useGroupDrawer from "@/hooks/useGroupDrawer"
 import Avatar from "@/components/ui/Avatar"
 import Button from "@/components/ui/Button"
 import Modal from "@/components/ui/Modal"
 import { HiPencil, HiCheck, HiXMark, HiPlusCircle } from "react-icons/hi2"
+import { api } from "@/lib/axios"
 import { SafeUser } from "@/types"
 
 export default function GroupDrawer() {
@@ -46,12 +48,7 @@ export default function GroupDrawer() {
 
     setIsLoading(true)
     try {
-      const res = await fetch(`/api/conversations/${currentConv.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: trimmedName }),
-      })
-      if (!res.ok) throw new Error("Failed to rename")
+      await api.patch(`/api/conversations/${currentConv.id}`, { name: trimmedName })
       updateConversation({ ...currentConv, name: trimmedName })
       toast.success("Group renamed")
       setIsEditing(false)
@@ -67,19 +64,15 @@ export default function GroupDrawer() {
     if (!showAddMember || !conversation) return
     setAvailableLoading(true)
     const abortController = new AbortController()
-    fetch("/api/users", { signal: abortController.signal })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to load users")
-        return res.json()
-      })
-      .then((data) => {
+    api.get("/api/users", { signal: abortController.signal })
+      .then(({ data }) => {
         if (Array.isArray(data)) {
           const memberIds = new Set(conversation.users.map((u) => u.id))
           setAvailableUsers(data.filter((u: SafeUser) => !memberIds.has(u.id)))
         }
       })
       .catch((err) => {
-        if (err instanceof DOMException) return
+        if (axios.isCancel(err)) return
         toast.error("Failed to load users")
       })
       .finally(() => setAvailableLoading(false))
@@ -90,12 +83,7 @@ export default function GroupDrawer() {
     if (!conversation) return
     setAddingMemberId(userId)
     try {
-      const res = await fetch(`/api/conversations/${conversation.id}/members`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      })
-      if (!res.ok) throw new Error("Failed to add member")
+      await api.post(`/api/conversations/${conversation.id}/members`, { userId })
       const addedUser = availableUsers.find((u) => u.id === userId)
       if (addedUser) {
         updateConversation({
@@ -122,15 +110,9 @@ export default function GroupDrawer() {
     })
     setIsLoading(true)
     try {
-      const res = await fetch(
-        `/api/conversations/${currentConversation.id}/members`,
-        {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId }),
-        }
-      )
-      if (!res.ok) throw new Error()
+      await api.delete(`/api/conversations/${currentConversation.id}/members`, {
+        data: { userId },
+      })
       toast.success(`${userName} removed`)
     } catch {
       updateConversation(prevConversation)

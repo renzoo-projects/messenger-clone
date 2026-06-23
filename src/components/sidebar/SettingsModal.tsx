@@ -8,6 +8,7 @@ import Modal from "@/components/ui/Modal"
 import Button from "@/components/ui/Button"
 import useSettingsModal from "@/hooks/useSettingsModal"
 import { useFontSize, FontSize } from "@/hooks/useFontSize"
+import { api } from "@/lib/axios"
 import Avatar from "@/components/ui/Avatar"
 import { HiCamera, HiCheck, HiXMark } from "react-icons/hi2"
 
@@ -65,13 +66,7 @@ export default function SettingsModal() {
   const onSubmit = async (data: { name: string }) => {
     setIsLoading(true)
     try {
-      const res = await fetch("/api/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: data.name, image }),
-      })
-
-      if (!res.ok) throw new Error("Failed to update")
+      await api.patch("/api/settings", { name: data.name, image })
 
       await update()
       toast.success("Settings updated")

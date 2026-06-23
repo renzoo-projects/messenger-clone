@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import dynamic from "next/dynamic"
 import toast from "react-hot-toast"
+import { api } from "@/lib/axios"
 import Modal from "@/components/ui/Modal"
 
 const Select = dynamic(() => import("react-select"), { ssr: false })
@@ -76,15 +77,8 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
         ? { isGroup: true, name: groupName.trim(), members: selected.map((s) => s.value) }
         : { userId: selected[0].value }
 
-      const res = await fetch("/api/conversations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
+      const { data: conversation } = await api.post("/api/conversations", body)
 
-      if (!res.ok) throw new Error("Failed to create conversation")
-
-      const conversation = await res.json()
       router.push(`/conversations/${conversation.id}`)
       onClose()
     } catch {

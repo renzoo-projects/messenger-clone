@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { FullConversationType } from "@/types"
+import { api } from "@/lib/axios"
 import { getPusherClient } from "@/lib/pusherClient"
 import usePusherConnection from "@/lib/pusherConnectionStore"
 import useConversationCache from "@/hooks/useConversationCache"
@@ -22,9 +23,7 @@ export function useConversations(initialData?: FullConversationType[]) {
     const fetchConversations = async () => {
       setIsLoading(true)
       try {
-        const res = await fetch("/api/conversations")
-        if (!res.ok) throw new Error("Failed to fetch")
-        const data = await res.json()
+        const { data } = await api.get("/api/conversations")
         if (Array.isArray(data)) setConversations(data)
       } catch (error) {
         console.error("Failed to fetch conversations", error)
@@ -91,11 +90,8 @@ export function useConversations(initialData?: FullConversationType[]) {
   useEffect(() => {
     const refetch = async () => {
       try {
-        const res = await fetch("/api/conversations")
-        if (res.ok) {
-          const data = await res.json()
-          if (Array.isArray(data)) setConversations(data)
-        }
+        const { data } = await api.get("/api/conversations")
+        if (Array.isArray(data)) setConversations(data)
       } catch {}
     }
     refetch()

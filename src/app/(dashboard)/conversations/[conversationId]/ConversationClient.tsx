@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios from "axios"
 import { useSession } from "next-auth/react"
 import toast from "react-hot-toast"
 import dynamic from "next/dynamic"
+import { api } from "@/lib/axios"
 import ConversationHeader from "@/components/conversations/ConversationHeader"
 import MessageList from "@/components/conversations/MessageList"
 import MessageInput from "@/components/conversations/MessageInput"
@@ -80,16 +82,17 @@ export default function ConversationClient({
 
     const fetchData = async () => {
       try {
-        const [convRes, msgRes] = await Promise.all([
-          fetch(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
-          fetch(`/api/messages/${conversationId}?take=25`, { signal: abortController.signal }),
-        ])
-        if (!convRes.ok) {
+        try {
+          var [convRes, msgRes] = await Promise.all([
+            api.get(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
+            api.get(`/api/messages/${conversationId}?take=25`, { signal: abortController.signal }),
+          ])
+        } catch {
           setLoading(false)
           return
         }
-        const conv = await convRes.json()
-        const msgData = msgRes.ok ? await msgRes.json() : { messages: [], nextCursor: null }
+        const conv = convRes.data
+        const msgData = msgRes.data
 
         setConversation(conv)
         setMessages((prev) => {
@@ -107,7 +110,7 @@ export default function ConversationClient({
           nextCursor: msgData.nextCursor ?? null,
         })
       } catch (err) {
-        if (err instanceof DOMException) return
+        if (axios.isCancel(err)) return
         setLoading(false)
       }
     }
@@ -121,11 +124,9 @@ export default function ConversationClient({
     if (loadingMore || !nextCursor) return
     setLoadingMore(true)
     try {
-      const res = await fetch(
+      const { data } = await api.get(
         `/api/messages/${conversationId}?cursor=${nextCursor}&take=50`
       )
-      if (!res.ok) throw new Error("Failed to load more")
-      const data = await res.json()
       setMessages((prev) => [...data.messages, ...prev])
       setNextCursor(data.nextCursor)
     } catch {
@@ -222,32 +223,28 @@ export default function ConversationClient({
     const refetch = async () => {
       try {
         const [convRes, msgRes] = await Promise.all([
-          fetch(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
-          fetch(`/api/messages/${conversationId}?take=50`, { signal: abortController.signal }),
+          api.get(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
+          api.get(`/api/messages/${conversationId}?take=50`, { signal: abortController.signal }),
         ])
-        if (convRes.ok) {
-          const conv = await convRes.json()
-          setConversation(conv)
-          setCached(conversationId, { conversation: conv })
-        }
-        if (msgRes.ok) {
-          const data = await msgRes.json()
-          if (data.messages?.length) {
-            setMessages((prev) => {
-              const incoming = data.messages
-              const incomingIds = new Set(incoming.map((m: any) => m.id))
-              const prevNonTemp = prev.filter((m) => !incomingIds.has(m.id))
-              return [...incoming, ...prevNonTemp]
-            })
-            setNextCursor(data.nextCursor ?? null)
-            setCached(conversationId, {
-              messages: data.messages,
-              nextCursor: data.nextCursor ?? null,
-            })
-          }
+        const conv = convRes.data
+        setConversation(conv)
+        setCached(conversationId, { conversation: conv })
+        const data = msgRes.data
+        if (data.messages?.length) {
+          setMessages((prev) => {
+            const incoming = data.messages
+            const incomingIds = new Set(incoming.map((m: any) => m.id))
+            const prevNonTemp = prev.filter((m) => !incomingIds.has(m.id))
+            return [...incoming, ...prevNonTemp]
+          })
+          setNextCursor(data.nextCursor ?? null)
+          setCached(conversationId, {
+            messages: data.messages,
+            nextCursor: data.nextCursor ?? null,
+          })
         }
       } catch (err) {
-        if (err instanceof DOMException) return
+        if (axios.isCancel(err)) return
       }
     }
     refetch()
@@ -255,11 +252,7 @@ export default function ConversationClient({
   }, [conversationId, reconnectCount, setCached])
 
   const handleTypingAction = useCallback((action: "start" | "stop") => {
-    fetch(`/api/conversations/${conversationId}/typing`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action }),
-    }).catch(() => {})
+    api.post(`/api/conversations/${conversationId}/typing`, { action }).catch(() => {})
   }, [conversationId])
 
   const handleSummarize = useCallback(async () => {
@@ -267,10 +260,7 @@ export default function ConversationClient({
     setSummary(null)
     setSummaryError(null)
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/summarize`, {
-        method: "POST",
-      })
-      const data = await res.json()
+      const { data } = await api.post(`/api/conversations/${conversationId}/summarize`)
       if (data.error) {
         setSummaryError(data.error)
       } else {
@@ -308,14 +298,11 @@ export default function ConversationClient({
     setMessages((prev) => [...prev, tempMessage])
 
     try {
-      const res = await fetch(`/api/messages/${conversationId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: body, images }),
+      const { data } = await api.post(`/api/messages/${conversationId}`, {
+        message: body,
+        images,
       })
-      if (!res.ok) throw new Error("Failed to send")
-      const realMessage = await res.json()
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? realMessage : m)))
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)))
       hapticLight()
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
@@ -326,7 +313,7 @@ export default function ConversationClient({
   const handleEngage = useCallback(async () => {
     if (!conversationId) return
     try {
-      await fetch(`/api/conversations/${conversationId}/seen`, { method: "POST" })
+      await api.post(`/api/conversations/${conversationId}/seen`)
     } catch {}
   }, [conversationId])
 

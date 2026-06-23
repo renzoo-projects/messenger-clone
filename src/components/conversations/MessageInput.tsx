@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { HiPaperAirplane, HiPhoto, HiXMark } from "react-icons/hi2"
 import toast from "react-hot-toast"
+import { api } from "@/lib/axios"
 
 interface Attachment {
   id: string
@@ -111,9 +112,7 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
       const uploadPromises = currentAttachments.map(async (att) => {
         const formData = new FormData()
         formData.append("file", att.file)
-        const res = await fetch("/api/upload", { method: "POST", body: formData })
-        if (!res.ok) throw new Error("Upload failed")
-        const data = await res.json()
+        const { data } = await api.post("/api/upload", formData)
         if (!data.url) throw new Error("No URL returned")
         return data.url
       })
