@@ -2,7 +2,6 @@
 
 import { useRef, useEffect, useMemo, useCallback, memo } from "react"
 import { useSession } from "next-auth/react"
-import Image from "next/image"
 import clsx from "clsx"
 import { FullMessageType, OptimisticMessageType } from "@/types"
 import { format, isToday, isYesterday } from "date-fns"
@@ -196,35 +195,25 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                     {(() => {
                       const images = message.images?.length ? message.images : (message.image ? [message.image] : [])
                       if (images.length === 0) return null
-                      const gridClass = images.length === 1
-                        ? "grid-cols-1"
-                        : images.length === 2
-                          ? "grid-cols-2"
-                          : "grid-cols-2"
                       return (
-                        <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col")}>
-                          <div className={clsx("grid gap-0.5 overflow-hidden rounded-xl", gridClass, images.length <= 2 ? "w-60 max-w-full" : "w-72 max-w-full")}>
-                            {images.slice(0, 4).map((img, i) => {
-                              const isLast = i === 3 && images.length > 4
-                              const cellClass = images.length === 3 && i === 0 ? "col-span-2" : ""
-                              return (
-                                <div key={i} className={clsx("relative", cellClass, images.length <= 2 ? "h-60" : images.length === 3 && i === 0 ? "h-48" : "h-36")}>
-                                  <Image
-                                    src={img}
-                                    alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
-                                    fill
-                                    className="object-cover"
-                                    sizes={images.length <= 2 ? "240px" : "144px"}
-                                  />
-                                  {isLast && (
-                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                      <span className="text-white text-xl font-bold">+{images.length - 4}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
+                        <div className={clsx(isOwn ? "items-end" : "items-start", "flex flex-col gap-0.5")}>
+                          {images.slice(0, 4).map((img, i) => {
+                            const isLast = i === 3 && images.length > 4
+                            return (
+                              <div key={i} className="relative w-full max-w-[300px]">
+                                <img
+                                  src={img}
+                                  alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
+                                  className="w-full h-auto rounded-xl"
+                                />
+                                {isLast && (
+                                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                                    <span className="text-white text-xl font-bold">+{images.length - 4}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
                           {message.body && (
                             <div
                               className={clsx(
