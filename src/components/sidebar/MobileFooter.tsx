@@ -29,7 +29,7 @@ export default function MobileFooter() {
   return (
     <>
       {/* Mobile Footer */}
-      <div className="fixed bottom-0 left-0 z-40 w-full bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 lg:hidden">
+      <div className="fixed bottom-0 left-0 z-40 w-full bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 lg:hidden pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-center justify-between px-4 h-16">
           {/* Primary Navigation */}
           <div className="flex items-center gap-4">
