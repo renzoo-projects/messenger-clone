@@ -18,6 +18,22 @@ export async function POST(
     const { conversationId } = await params
     await assertConversationMember(session.user.id, conversationId)
 
+    const hasTextMessages = await prismadb.message.findFirst({
+      where: {
+        conversationId,
+        senderId: { not: session.user.id },
+        body: { not: null },
+      },
+      select: { id: true },
+    })
+
+    if (!hasTextMessages) {
+      return NextResponse.json(
+        { error: "No text messages to mark as unread" },
+        { status: 400 }
+      )
+    }
+
     await prismadb.seenMessage.deleteMany({
       where: {
         userId: session.user.id,

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
 import { api } from "@/lib/axios"
+import axios from "axios"
 import Avatar from "@/components/ui/Avatar"
 import GroupAvatar from "@/components/ui/GroupAvatar"
 import { FullConversationType } from "@/types"
@@ -133,8 +134,12 @@ const ConversationBox = memo(function ConversationBox({
     setShowMenu(false)
     try {
       await api.post(`/api/conversations/${conversation.id}/unread`)
-    } catch {
-      toast.error("Failed to mark as unread")
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        toast.error(error.response.data?.error || "Cannot mark as unread")
+      } else {
+        toast.error("Failed to mark as unread")
+      }
     }
   }, [conversation.id])
 
@@ -246,11 +251,16 @@ const ConversationBox = memo(function ConversationBox({
           )}
           style={{ transition: swiped ? "none" : undefined }}
         >
-          {conversation.isGroup ? (
-            <GroupAvatar users={conversation.users} />
-          ) : (
-            <Avatar user={otherUser} />
-          )}
+          <div className="relative shrink-0">
+            {conversation.isGroup ? (
+              <GroupAvatar users={conversation.users} />
+            ) : (
+              <Avatar user={otherUser} />
+            )}
+            {unreadCount > 0 && (
+              <span className="absolute -left-0.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-blue-500 ring-2 ring-white dark:ring-gray-950" />
+            )}
+          </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <p
@@ -269,11 +279,7 @@ const ConversationBox = memo(function ConversationBox({
                     {format(new Date(lastMessage.createdAt), "p")}
                   </p>
                 )}
-                {unreadCount > 0 && (
-                  <span className="bg-blue-500 text-white text-xs font-bold rounded-full h-5 min-w-5 flex items-center justify-center px-1">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
+
               </div>
             </div>
             <p
