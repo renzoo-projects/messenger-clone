@@ -276,14 +276,14 @@ export default function ConversationClient({
     }
   }, [conversationId])
 
-  const handleSendMessage = useCallback(async (body: string, images?: string[]) => {
+  const handleSendMessage = useCallback(async (body: string, files?: File[]) => {
     const tempId = `temp-${crypto.randomUUID()}`
     const currentUserId = session?.user?.id || ""
     const tempMessage: OptimisticMessageType = {
       id: tempId,
       body: body || null,
-      image: images?.[0] || null,
-      images: images || [],
+      image: null,
+      images: [],
       createdAt: new Date().toISOString(),
       sender: {
         id: currentUserId,
@@ -300,9 +300,21 @@ export default function ConversationClient({
     setMessages((prev) => [...prev, tempMessage])
 
     try {
+      let imageUrls: string[] = []
+      if (files && files.length > 0) {
+        const uploads = files.map(async (file) => {
+          const fd = new FormData()
+          fd.append("file", file)
+          const { data } = await api.post("/api/upload", fd)
+          if (!data.url) throw new Error("No URL returned")
+          return data.url
+        })
+        imageUrls = await Promise.all(uploads)
+      }
+
       const { data } = await api.post(`/api/messages/${conversationId}`, {
         message: body,
-        images,
+        images: imageUrls.length > 0 ? imageUrls : undefined,
       })
       setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)))
       hapticLight()

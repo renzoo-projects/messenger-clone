@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
 import { HiPaperAirplane, HiPhoto, HiXMark } from "react-icons/hi2"
 import toast from "react-hot-toast"
-import { api } from "@/lib/axios"
 
 interface Attachment {
   id: string
@@ -13,7 +12,7 @@ interface Attachment {
 }
 
 interface MessageInputProps {
-  onSend: (message: string, images?: string[]) => Promise<void>
+  onSend: (message: string, files?: File[]) => Promise<void>
   onEngage?: () => void
   onTypingAction?: (action: "start" | "stop") => void
 }
@@ -103,25 +102,13 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
     if (!text.trim() && attachments.length === 0) return
 
     const messageText = text.trim()
-    const currentAttachments = attachments
+    const currentFiles = attachments.map((a) => a.file)
+    setText("")
+    clearAttachments()
+    if (onTypingAction) onTypingAction("stop")
 
     try {
-      let imageUrls: string[] = []
-      if (currentAttachments.length > 0) {
-        const uploadPromises = currentAttachments.map(async (att) => {
-          const formData = new FormData()
-          formData.append("file", att.file)
-          const { data } = await api.post("/api/upload", formData)
-          if (!data.url) throw new Error("No URL returned")
-          return data.url
-        })
-        imageUrls = await Promise.all(uploadPromises)
-      }
-
-      await onSend(messageText, imageUrls.length > 0 ? imageUrls : undefined)
-      setText("")
-      clearAttachments()
-      if (onTypingAction) onTypingAction("stop")
+      await onSend(messageText, currentFiles.length > 0 ? currentFiles : undefined)
     } catch {
       toast.error("Failed to send message")
     }
