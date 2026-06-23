@@ -70,6 +70,11 @@ export default function ConversationClient({
 
   useEffect(() => {
     if (!conversationId) return
+    api.post(`/api/conversations/${conversationId}/seen`).catch(() => {})
+  }, [conversationId])
+
+  useEffect(() => {
+    if (!conversationId) return
     const abortController = new AbortController()
 
     const currentlyCached = getCached(conversationId)
