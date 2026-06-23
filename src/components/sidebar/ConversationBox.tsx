@@ -315,7 +315,6 @@ const ConversationBox = memo(function ConversationBox({
                 onMouseEnter={handleMenuEnter}
                 onMouseLeave={() => setShowMenu(false)}
               >
-                {unreadCount > 0 && (
                 <button
                   onClick={handleMarkRead}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition"
@@ -323,7 +322,6 @@ const ConversationBox = memo(function ConversationBox({
                   <HiOutlineEnvelopeOpen className="h-4 w-4" />
                   Mark as read
                 </button>
-                )}
                 {unreadCount === 0 && (
                 <button
                   onClick={handleMarkUnread}

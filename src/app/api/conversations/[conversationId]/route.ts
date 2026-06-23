@@ -130,54 +130,24 @@ export async function DELETE(
     const { conversationId } = await params
     await assertConversationMember(session.user.id, conversationId)
 
-    const existing = await prismadb.conversation.findUnique({
-      where: { id: conversationId },
-      include: { users: true },
+    await prismadb.conversationUser.deleteMany({
+      where: { userId: session.user.id, conversationId },
     })
 
-    if (!existing) {
-      return NextResponse.json(
-        { error: "Conversation not found" },
-        { status: 404 }
-      )
-    }
-
-    const firstMember = await prismadb.conversationUser.findFirst({
-      where: { conversationId },
-      orderBy: { createdAt: "asc" },
-    })
-    if (firstMember?.userId !== session.user.id) {
-      return NextResponse.json(
-        { error: "Only the conversation creator can delete" },
-        { status: 403 }
-      )
-    }
-
-    await prismadb.conversation.delete({
-      where: { id: conversationId },
+    await prismadb.seenMessage.deleteMany({
+      where: {
+        userId: session.user.id,
+        message: { conversationId },
+      },
     })
 
     const deletePayload = { id: conversationId }
 
-    try {
-      await pusherServer.trigger(
-        `private-conversation-${conversationId}`,
-        "conversation:delete",
-        deletePayload
-      )
-
-      await Promise.allSettled(
-        existing.users.map((member) =>
-          pusherServer.trigger(
-            `private-${member.userId}`,
-            "conversation:delete",
-            deletePayload
-          )
-        )
-      )
-    } catch (e) {
-      console.warn("PUSHER_DELETE_FAILED", e)
-    }
+    await pusherServer.trigger(
+      `private-${session.user.id}`,
+      "conversation:delete",
+      deletePayload
+    )
 
     return NextResponse.json(deletePayload)
   } catch (error) {

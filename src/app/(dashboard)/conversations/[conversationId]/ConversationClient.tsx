@@ -71,7 +71,9 @@ export default function ConversationClient({
 
   useEffect(() => {
     if (!conversationId) return
-    api.post(`/api/conversations/${conversationId}/seen`).catch(() => {})
+    const controller = new AbortController()
+    api.post(`/api/conversations/${conversationId}/seen`, { signal: controller.signal }).catch(() => {})
+    return () => controller.abort()
   }, [conversationId])
 
   useEffect(() => {
@@ -338,13 +340,6 @@ export default function ConversationClient({
     }
   }, [conversationId, session?.user])
 
-  const handleEngage = useCallback(async () => {
-    if (!conversationId) return
-    try {
-      await api.post(`/api/conversations/${conversationId}/seen`)
-    } catch {}
-  }, [conversationId])
-
   if (!conversation && loading) {
     return (
       <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-800 motion-safe:animate-pulse">
@@ -416,7 +411,7 @@ export default function ConversationClient({
         />
         <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
       </div>
-      <MessageInput key={conversationId} onSend={handleSendMessage} onEngage={handleEngage} onTypingAction={handleTypingAction} />
+      <MessageInput key={conversationId} onSend={handleSendMessage} onTypingAction={handleTypingAction} />
     </div>
   )
 }
