@@ -31,30 +31,38 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
+    const lastSeen = await prismadb.seenMessage.findFirst({
+      where: { userId: session.user.id, message: { conversationId } },
+      orderBy: { createdAt: "desc" },
+    })
+
     const recentMessages = await prismadb.message.findMany({
       where: {
         conversationId,
         body: { not: null },
+        ...(lastSeen?.createdAt && { createdAt: { gt: lastSeen.createdAt } }),
       },
       select: {
         body: true,
         sender: { select: { name: true } },
         createdAt: true,
       },
-      orderBy: { createdAt: "desc" },
-      take: 20,
+      orderBy: { createdAt: "asc" },
+      take: 100,
     })
 
     if (recentMessages.length === 0) {
-      return NextResponse.json({
-        summary: "No messages to summarize yet.",
-        messageCount: 0,
+      const totalMessages = await prismadb.message.count({
+        where: { conversationId },
       })
+      const summary =
+        totalMessages === 0
+          ? "No messages to summarize yet."
+          : "You're all caught up! No new messages since you last looked."
+      return NextResponse.json({ summary, messageCount: 0 })
     }
 
-    const reversedMessages = recentMessages.reverse()
-
-    const messagesText = reversedMessages
+    const messagesText = recentMessages
       .map(
         (msg, i) =>
           `${i + 1}. ${msg.sender.name ?? "Unknown"}: ${msg.body ?? ""}`
@@ -62,7 +70,7 @@ export async function POST(
       .join("\n")
 
     const systemPrompt =
-      "You're a helpful assistant summarizing a group chat conversation. " +
+      "You're a helpful assistant summarizing messages the user missed since they last checked. " +
       "Write a short, friendly summary in 3-6 sentences — like you're catching up a friend who missed the chat. " +
       "Cover the main topics, any decisions made, questions asked, and things people need to follow up on. " +
       "Keep it natural and easy to read, not bullet points or formal language."
@@ -86,7 +94,7 @@ export async function POST(
               { role: "system", content: systemPrompt },
               {
                 role: "user",
-                content: `Summarize these ${reversedMessages.length} messages:\n\n${messagesText}`,
+                content: `Summarize these ${recentMessages.length} messages:\n\n${messagesText}`,
               },
             ],
             temperature: 0.3,
@@ -116,7 +124,7 @@ export async function POST(
 
       return NextResponse.json({
         summary,
-        messageCount: reversedMessages.length,
+        messageCount: recentMessages.length,
       })
     } finally {
       clearTimeout(timeout)
