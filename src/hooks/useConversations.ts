@@ -56,13 +56,13 @@ export function useConversations(initialData?: FullConversationType[]) {
     })
 
     channel.bind("conversation:update", (data: FullConversationType | { id: string; unreadCount?: number }) => {
-      setConversations((prev) =>
-        prev.map((c) => {
+      setConversations((prev) => {
+        if ("users" in data) {
+          setCached(data.id, { conversation: data as FullConversationType })
+          return [data as FullConversationType, ...prev.filter((c) => c.id !== data.id)]
+        }
+        return prev.map((c) => {
           if (c.id !== data.id) return c
-          if ("users" in data) {
-            setCached(data.id, { conversation: data as FullConversationType })
-            return data as FullConversationType
-          }
           const existing = getCached(data.id)
           if (existing) {
             setCached(data.id, {
@@ -71,7 +71,7 @@ export function useConversations(initialData?: FullConversationType[]) {
           }
           return { ...c, unreadCount: data.unreadCount ?? 0 }
         })
-      )
+      })
     })
 
     channel.bind("conversation:delete", (deleted: { id: string }) => {

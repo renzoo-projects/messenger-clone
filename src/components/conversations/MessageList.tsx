@@ -1,10 +1,11 @@
 "use client"
 
-import { useRef, useEffect, useMemo, useCallback, memo } from "react"
+import { useRef, useState, useEffect, useMemo, useCallback, memo } from "react"
 import { useSession } from "next-auth/react"
 import clsx from "clsx"
 import { FullMessageType, OptimisticMessageType } from "@/types"
 import { format, isToday, isYesterday } from "date-fns"
+import { HiChevronDown } from "react-icons/hi2"
 import Avatar from "@/components/ui/Avatar"
 import useActiveList from "@/hooks/useActiveList"
 
@@ -55,6 +56,23 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   const bottomRef = useRef<HTMLDivElement>(null)
   const topRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [showScrollDown, setShowScrollDown] = useState(false)
+
+  const handleScroll = useCallback(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    setShowScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 150)
+  }, [])
+
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [])
+
+  const initialScrolled = useRef(false)
+
+  useEffect(() => {
+    if (messages.length === 0) initialScrolled.current = false
+  }, [messages.length])
 
   const typingUsers = useMemo(() => {
     if (!typingUserIds || typingUserIds.size === 0 || !conversation?.users) return []
@@ -84,7 +102,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   }, [loadMore, hasMore])
 
   useEffect(() => {
-    if (isNearBottom()) {
+    if (!initialScrolled.current && messages.length > 0) {
+      bottomRef.current?.scrollIntoView()
+      initialScrolled.current = true
+    } else if (isNearBottom()) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" })
     }
   }, [messages, isNearBottom])
@@ -108,6 +129,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   }, [session?.user?.id])
 
   const groupedMessages = useMemo(() => {
+    if (!messages) return []
     const groups: { date: string; messages: FullMessageType[] }[] = []
     for (const msg of messages) {
       const dateKey = format(new Date(msg.createdAt), "yyyy-MM-dd")
@@ -134,8 +156,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   }
 
   return (
+    <div className="relative flex-1 min-h-0 flex flex-col">
       <div
           ref={scrollContainerRef}
+          onScroll={handleScroll}
           className="flex-1 overflow-y-auto bg-transparent px-4 py-6 space-y-4 min-h-0"
           role="log"
           aria-live="polite"
@@ -265,6 +289,16 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
       <div ref={bottomRef} />
       <TypingIndicator typingUsers={typingUsers} isGroup={isGroup} />
     </div>
+    {showScrollDown && (
+      <button
+        onClick={scrollToBottom}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center justify-center h-10 w-10 rounded-full bg-white dark:bg-gray-800 shadow-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all motion-safe:animate-fadeIn"
+        aria-label="Scroll to latest message"
+      >
+        <HiChevronDown className="h-5 w-5" />
+      </button>
+    )}
+  </div>
   )
 })
 

@@ -50,6 +50,7 @@ export default function ConversationClient({
     cached?.nextCursor ?? null
   )
   const [loading, setLoading] = useState(!cached)
+  const [notFound, setNotFound] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [typingUserIds, setTypingUserIds] = useState<Set<string>>(new Set())
   const currentUserIdRef = useRef(session?.user?.id)
@@ -97,7 +98,10 @@ export default function ConversationClient({
             api.get(`/api/conversations/${conversationId}`, { signal: abortController.signal }),
             api.get(`/api/messages/${conversationId}?take=25`, { signal: abortController.signal }),
           ])
-        } catch {
+        } catch (err) {
+          if (axios.isAxiosError(err) && err.response?.status === 404) {
+            setNotFound(true)
+          }
           setLoading(false)
           return
         }
@@ -121,6 +125,11 @@ export default function ConversationClient({
         })
       } catch (err) {
         if (axios.isCancel(err)) return
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          setNotFound(true)
+          setLoading(false)
+          return
+        }
         if (axios.isAxiosError(err) && err.response?.status === 403) {
           clearCached(conversationId)
           router.push("/conversations")
@@ -177,6 +186,7 @@ export default function ConversationClient({
         if (prev.some((m) => m.id === message.id)) return prev
         return [...prev, message]
       })
+      api.post(`/api/conversations/${conversationId}/seen`).catch(() => {})
     })
 
     channel.bind("messages:seen", ({ messageIds, userId, user }: { messageIds: string[]; userId: string; user: SafeUser }) => {
@@ -354,7 +364,28 @@ export default function ConversationClient({
     }
   }, [conversationId, session?.user])
 
-  if (!conversation && loading) {
+  if (notFound) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Conversation not found
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            This conversation may have been deleted or you may not have access.
+          </p>
+          <Link
+            href="/conversations"
+            className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-500 font-medium"
+          >
+            Back to conversations
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (!conversation) {
     return (
       <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-800 motion-safe:animate-pulse">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
@@ -374,27 +405,6 @@ export default function ConversationClient({
         </div>
         <div className="px-4 py-3">
           <div className="h-11 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800" />
-        </div>
-      </div>
-    )
-  }
-
-  if (!conversation) {
-    return (
-      <div className="h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            Conversation not found
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            This conversation may have been deleted or you may not have access.
-          </p>
-          <Link
-            href="/conversations"
-            className="mt-4 inline-block text-sm text-blue-600 hover:text-blue-500 font-medium"
-          >
-            Back to conversations
-          </Link>
         </div>
       </div>
     )
@@ -423,7 +433,7 @@ export default function ConversationClient({
           }}
           onRetry={handleSummarize}
         />
-        <MessageList messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
+        <MessageList key={conversationId} messages={messages} isGroup={conversation.isGroup} loadMore={loadMore} hasMore={!!nextCursor} loadingMore={loadingMore} typingUserIds={typingUserIds} conversation={conversation} />
       </div>
       <MessageInput key={conversationId} onSend={handleSendMessage} onTypingAction={handleTypingAction} />
     </div>
