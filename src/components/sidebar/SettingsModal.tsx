@@ -38,12 +38,12 @@ export default function SettingsModal() {
   })
 
   useEffect(() => {
-    if (settingsModal.isOpen && session?.user) {
-      reset({ name: session.user.name || "" })
-      setImage(session.user.image || undefined)
+    if (settingsModal.isOpen) {
+      reset({ name: session?.user?.name || "" })
+      setImage(session?.user?.image || undefined)
       setRemoveImage(false)
     }
-  }, [settingsModal.isOpen, session?.user])
+  }, [settingsModal.isOpen, session])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]

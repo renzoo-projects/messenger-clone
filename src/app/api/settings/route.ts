@@ -33,7 +33,14 @@ export async function PATCH(request: Request) {
     try {
       const conversations = await prismadb.conversation.findMany({
         where: { users: { some: { userId: session.user.id } } },
-        include: { users: { include: { user: true } } },
+        include: {
+          users: { include: { user: true } },
+          messages: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+            include: { sender: true, seenBy: { include: { user: true } } },
+          },
+        },
       })
 
       await Promise.allSettled(
