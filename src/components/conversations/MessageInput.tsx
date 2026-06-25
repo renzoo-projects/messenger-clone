@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import Image from "next/image"
 import { HiPaperAirplane, HiPhoto, HiXMark } from "react-icons/hi2"
 import toast from "react-hot-toast"
 
@@ -25,10 +24,15 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
   const formRef = useRef<HTMLDivElement>(null)
   const typingThrottleRef = useRef(false)
   const typingStopTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const attachmentsRef = useRef<Attachment[]>([])
+
+  useEffect(() => {
+    attachmentsRef.current = attachments
+  })
 
   useEffect(() => {
     return () => {
-      attachments.forEach((a) => URL.revokeObjectURL(a.url))
+      attachmentsRef.current.forEach((a) => URL.revokeObjectURL(a.url))
     }
   }, [])
 
@@ -124,12 +128,10 @@ export default function MessageInput({ onSend, onEngage, onTypingAction }: Messa
         <div className="mb-3 flex flex-wrap gap-2">
           {attachments.map((att) => (
             <div key={att.id} className="relative w-36 h-36">
-              <Image
+              <img
                 src={att.url}
                 alt="Image preview"
-                fill
-                className="rounded-xl object-cover shadow-sm"
-                sizes="144px"
+                className="w-full h-full rounded-xl object-cover shadow-sm"
               />
               <button
                 type="button"
