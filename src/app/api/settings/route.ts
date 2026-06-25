@@ -1,8 +1,10 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import prismadb from "@/lib/prismadb"
+import pusherServer from "@/lib/pusherServer"
 import { sanitizeUser } from "@/lib/safeUser"
 import { settingsSchema } from "@/lib/validations"
+import { transformConversation } from "@/lib/conversationTransformer"
 
 export async function PATCH(request: Request) {
   try {
@@ -27,6 +29,36 @@ export async function PATCH(request: Request) {
       where: { id: session.user.id },
       data: { name, image },
     })
+
+    try {
+      const conversations = await prismadb.conversation.findMany({
+        where: { users: { some: { userId: session.user.id } } },
+        include: { users: { include: { user: true } } },
+      })
+
+      await Promise.allSettled(
+        conversations.flatMap((conv) => {
+          const transformed = transformConversation(conv)
+          const memberIds = conv.users.map((cu) => cu.userId)
+          return [
+            pusherServer.trigger(
+              `private-conversation-${conv.id}`,
+              "conversation:update",
+              transformed
+            ),
+            ...memberIds.map((uid) =>
+              pusherServer.trigger(
+                `private-${uid}`,
+                "conversation:update",
+                transformed
+              )
+            ),
+          ]
+        })
+      )
+    } catch (e) {
+      console.warn("SETTINGS_PUSHER_FAILED", e)
+    }
 
     return NextResponse.json(sanitizeUser(user))
   } catch (error) {

@@ -23,7 +23,8 @@ export default function SettingsModal() {
   const settingsModal = useSettingsModal()
   const { data: session, update } = useSession()
   const [isLoading, setIsLoading] = useState(false)
-  const [image, setImage] = useState<string | undefined>(session?.user?.image || undefined)
+  const [image, setImage] = useState<string | null | undefined>(session?.user?.image || undefined)
+  const [removeImage, setRemoveImage] = useState(false)
   const fontSize = useFontSize((s) => s.fontSize)
   const setFontSize = useFontSize((s) => s.setFontSize)
 
@@ -52,6 +53,7 @@ export default function SettingsModal() {
       if (!res.ok) throw new Error("Upload failed")
       const data = await res.json()
       if (data.url) {
+        setRemoveImage(false)
         setImage(data.url)
       } else {
         toast.error("Upload failed - Cloudinary may not be configured")
@@ -66,7 +68,10 @@ export default function SettingsModal() {
   const onSubmit = async (data: { name: string }) => {
     setIsLoading(true)
     try {
-      await api.patch("/api/settings", { name: data.name, image })
+      await api.patch("/api/settings", {
+        name: data.name,
+        image: removeImage ? null : image,
+      })
 
       await update()
       toast.success("Settings updated")
@@ -105,6 +110,19 @@ export default function SettingsModal() {
               disabled={isLoading}
             />
           </label>
+          {(image || removeImage) && (
+            <button
+              type="button"
+              onClick={() => {
+                setRemoveImage(true)
+                setImage(null)
+              }}
+              disabled={isLoading || removeImage}
+              className="text-xs text-red-500 hover:text-red-400 font-medium transition-colors disabled:opacity-50"
+            >
+              {removeImage ? "Photo will be removed" : "Remove"}
+            </button>
+          )}
         </div>
 
         <div>

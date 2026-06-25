@@ -160,6 +160,15 @@ export default function ConversationClient({
 
     channel.bind("conversation:update", (conv: FullConversationType) => {
       setConversation(conv)
+      const userMap = new Map(conv.users.map((u) => [u.id, u]))
+      setMessages((prev) =>
+        prev.map((m) => {
+          if (m.sender && userMap.has(m.sender.id)) {
+            return { ...m, sender: userMap.get(m.sender.id)! }
+          }
+          return m
+        })
+      )
     })
 
     channel.bind("messages:new", (message: FullMessageType) => {
