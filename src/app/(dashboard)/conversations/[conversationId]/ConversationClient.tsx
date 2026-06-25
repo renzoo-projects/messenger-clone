@@ -330,7 +330,12 @@ export default function ConversationClient({
         message: body,
         images: imageUrls.length > 0 ? imageUrls : undefined,
       })
-      setMessages((prev) => prev.map((m) => (m.id === tempId ? data : m)))
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === data.id)) {
+          return prev.filter((m) => m.id !== tempId)
+        }
+        return prev.map((m) => (m.id === tempId ? data : m))
+      })
       hapticLight()
       requestAnimationFrame(() => localUrls.forEach((u) => URL.revokeObjectURL(u)))
     } catch {
