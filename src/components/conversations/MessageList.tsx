@@ -187,9 +187,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                           <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
                             {sender.name || "Unknown"}
                           </span>
-                        {isOnline && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-green-500" title="Online" />
-                        )}
+
                       </div>
                     )}
                     {(() => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useForm } from "react-hook-form"
 import toast from "react-hot-toast"
@@ -32,9 +32,18 @@ export default function SettingsModal() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<{ name: string }>({
-    defaultValues: { name: session?.user?.name || "" },
+    defaultValues: { name: "" },
   })
+
+  useEffect(() => {
+    if (settingsModal.isOpen && session?.user) {
+      reset({ name: session.user.name || "" })
+      setImage(session.user.image || undefined)
+      setRemoveImage(false)
+    }
+  }, [settingsModal.isOpen, session?.user])
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
