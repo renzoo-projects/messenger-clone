@@ -130,6 +130,11 @@ export async function POST(
       },
     })
 
+    await prismadb.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() },
+    })
+
     try {
       await pusherServer.trigger(
         `private-conversation-${conversationId}`,
