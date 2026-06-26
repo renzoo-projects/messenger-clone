@@ -9,6 +9,7 @@ import { HiChevronDown } from "react-icons/hi2"
 import Avatar from "@/components/ui/Avatar"
 import ImagePreview from "@/components/ui/ImagePreview"
 import useActiveList from "@/hooks/useActiveList"
+import { getOptimizedUrl, getFullUrl } from "@/lib/cloudinaryUrl"
 
 
 interface MessageListProps {
@@ -243,10 +244,10 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                                   </div>
                                 ) : (
                                 <img
-                                  src={img}
+                                  src={getOptimizedUrl(img, 400)}
                                   alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
                                   className="w-full h-auto rounded-xl transition-opacity duration-200 cursor-pointer hover:opacity-90"
-                                  onClick={() => setPreviewImage(img)}
+                                  onClick={() => setPreviewImage(getFullUrl(img))}
                                   onError={() => handleImageError(img)}
                                 />
                                 )}
