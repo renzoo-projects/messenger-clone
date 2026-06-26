@@ -118,8 +118,8 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
             To:
           </label>
           {!isOpen ? null : usersLoading ? (
-            <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
-              Loading users...
+            <div className="flex justify-center py-2">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
             </div>
           ) : users.length === 0 ? (
             <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
