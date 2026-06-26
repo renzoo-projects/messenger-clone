@@ -60,6 +60,11 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
+
+  const handleImageError = useCallback((url: string) => {
+    setFailedImages((prev) => new Set(prev).add(url))
+  }, [])
 
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current
@@ -227,12 +232,24 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                             const isLast = i === 3 && images.length > 4
                             return (
                               <div key={i} className="relative w-full max-w-[300px]">
+                                {failedImages.has(img) ? (
+                                  <div className="w-full h-32 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-xl">
+                                    <button
+                                      onClick={() => setFailedImages((prev) => { const next = new Set(prev); next.delete(img); return next })}
+                                      className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 font-medium"
+                                    >
+                                      Tap to reload
+                                    </button>
+                                  </div>
+                                ) : (
                                 <img
                                   src={img}
                                   alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
                                   className="w-full h-auto rounded-xl transition-opacity duration-200 cursor-pointer hover:opacity-90"
                                   onClick={() => setPreviewImage(img)}
+                                  onError={() => handleImageError(img)}
                                 />
+                                )}
                                 {isLast && (
                                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
                                     <span className="text-white text-xl font-bold">+{images.length - 4}</span>
