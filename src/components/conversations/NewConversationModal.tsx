@@ -27,9 +27,11 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
   const [groupMode, setGroupMode] = useState(false)
   const [groupName, setGroupName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingUsers, setLoadingUsers] = useState(false)
 
   useEffect(() => {
     if (!isOpen) return
+    setLoadingUsers(true)
     const abortController = new AbortController()
 
     api.get("/api/users", { signal: abortController.signal })
@@ -40,10 +42,11 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
         if (axios.isCancel(err)) return
         toast.error("Failed to load users")
       })
+      .finally(() => setLoadingUsers(false))
     return () => abortController.abort()
   }, [isOpen])
 
-  const usersLoading = isOpen && users.length === 0
+  const usersLoading = loadingUsers
 
   const options = users
     .filter((user) => user.id !== session?.user?.id)
@@ -114,7 +117,7 @@ export default function NewConversationModal({ isOpen, onClose }: NewConversatio
           <label id="recipients-label" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             To:
           </label>
-          {usersLoading ? (
+          {!isOpen ? null : usersLoading ? (
             <div className="text-sm text-gray-400 dark:text-gray-500 py-2">
               Loading users...
             </div>
