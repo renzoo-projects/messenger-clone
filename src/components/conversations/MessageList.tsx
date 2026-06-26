@@ -7,6 +7,7 @@ import { FullMessageType, OptimisticMessageType } from "@/types"
 import { format, isToday, isYesterday } from "date-fns"
 import { HiChevronDown } from "react-icons/hi2"
 import Avatar from "@/components/ui/Avatar"
+import ImagePreview from "@/components/ui/ImagePreview"
 import useActiveList from "@/hooks/useActiveList"
 
 
@@ -50,6 +51,7 @@ const TypingIndicator = memo(function TypingIndicator({
   )
 })
 
+
 const MessageList = memo(function MessageList({ messages, isGroup, loadMore, hasMore, loadingMore, typingUserIds, conversation }: MessageListProps) {
   const { data: session } = useSession()
   const { members } = useActiveList()
@@ -57,6 +59,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   const topRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showScrollDown, setShowScrollDown] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
 
   const handleScroll = useCallback(() => {
     const el = scrollContainerRef.current
@@ -156,6 +159,7 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
   }
 
   return (
+    <>
     <div className="relative flex-1 min-h-0 flex flex-col">
       <div
           ref={scrollContainerRef}
@@ -226,7 +230,8 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
                                 <img
                                   src={img}
                                   alt={`Image ${i + 1} shared by ${sender.name || "Unknown"}`}
-                                  className="w-full h-auto rounded-xl transition-opacity duration-200"
+                                  className="w-full h-auto rounded-xl transition-opacity duration-200 cursor-pointer hover:opacity-90"
+                                  onClick={() => setPreviewImage(img)}
                                 />
                                 {isLast && (
                                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
@@ -299,6 +304,8 @@ const MessageList = memo(function MessageList({ messages, isGroup, loadMore, has
       </button>
     )}
   </div>
+  <ImagePreview src={previewImage} onClose={() => setPreviewImage(null)} />
+  </>
   )
 })
 
