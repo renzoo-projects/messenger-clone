@@ -44,23 +44,13 @@ export async function PATCH(request: Request) {
       })
 
       await Promise.allSettled(
-        conversations.flatMap((conv) => {
+        conversations.map((conv) => {
           const transformed = transformConversation(conv)
-          const memberIds = conv.users.map((cu) => cu.userId)
-          return [
-            pusherServer.trigger(
-              `private-conversation-${conv.id}`,
-              "conversation:update",
-              transformed
-            ),
-            ...memberIds.map((uid) =>
-              pusherServer.trigger(
-                `private-${uid}`,
-                "conversation:update",
-                transformed
-              )
-            ),
-          ]
+          return pusherServer.trigger(
+            `private-conversation-${conv.id}`,
+            "conversation:update",
+            transformed
+          )
         })
       )
     } catch (e) {
